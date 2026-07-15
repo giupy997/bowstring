@@ -10,25 +10,25 @@ interface IIdentityRegistry {
     function ownerOf(uint256 tokenId) external view returns (address);
 }
 
-/// @notice Registers NONCE as an ERC-8004 agent on the chain-appropriate
-///         Identity Registry. This fork targets Base mainnet; the Base
+/// @notice Registers BOW as an ERC-8004 agent on the chain-appropriate
+///         Identity Registry. This fork targets Robinhood Chain (4663); the
 ///         registry address must be supplied via env var until/unless
-///         we know a canonical deployment.
+///         we know a canonical deployment on that chain.
 ///
 /// Required env:
 ///   AGENT_URI = https://your-domain/agent.json
-///   IDENTITY_REGISTRY (Base address — required on Base, optional on
+///   IDENTITY_REGISTRY (required on Robinhood Chain, optional on
 ///                     Ethereum mainnet/Sepolia where defaults exist)
 ///   (and PRIVATE_KEY or --account, the wallet that becomes the agent NFT owner)
 ///
 /// Example:
-///   AGENT_URI=https://nonce-base.com/agent.json \
+///   AGENT_URI=https://YOUR-DOMAIN/agent.json \
 ///   IDENTITY_REGISTRY=0x...                       \
 ///   forge script script/RegisterAgent.s.sol      \
-///     --rpc-url $BASE_RPC --account nonce-base --broadcast
+///     --rpc-url $ROBINHOOD_RPC --account bowstring --broadcast
 contract RegisterAgent is Script {
     // Ethereum reference deployments (kept for cross-chain awareness; the
-    // active fork is on Base — set IDENTITY_REGISTRY env var).
+    // active fork is on Robinhood Chain — set IDENTITY_REGISTRY env var).
     address constant IDENTITY_REGISTRY_MAINNET = 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432;
     address constant IDENTITY_REGISTRY_SEPOLIA = 0x8004A818BFB912233c491871b3d84c89A494BD9e;
 
@@ -42,7 +42,7 @@ contract RegisterAgent is Script {
             if (block.chainid == 11155111) return IDENTITY_REGISTRY_SEPOLIA;
             revert(
                 "No IDENTITY_REGISTRY env var set for this chain. "
-                "On Base mainnet, supply IDENTITY_REGISTRY=0x... explicitly."
+                "On Robinhood Chain, supply IDENTITY_REGISTRY=0x... explicitly."
             );
         }
     }

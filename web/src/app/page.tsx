@@ -7,7 +7,7 @@ import { Genesis } from "@/components/Genesis";
 import { Miner } from "@/components/Miner";
 import { Trade } from "@/components/Trade";
 import { MinerAgent } from "@/components/MinerAgent";
-import { NONCE_ADDRESS } from "@/lib/contract";
+import { BOW_ADDRESS } from "@/lib/contract";
 
 export default function Page() {
   return (
@@ -24,7 +24,7 @@ export default function Page() {
             One contract, three roles: the{" "}
             <span style={{ color: "var(--accent)" }}>ERC-8004 agent</span>{" "}
             token, the Uniswap V4 hook that collects 1% of every swap,
-            and the PoW miner that releases 18.9M NONCE over time.
+            and the PoW miner that releases 18.9M BOW over time.
             Ships with a soulbound{" "}
             <span style={{ color: "var(--accent)" }}>Miner Agent NFT</span>{" "}
             collection. No owner. No mint key. No proxy.
@@ -48,24 +48,24 @@ export default function Page() {
 
         <footer className="pt-8 border-t font-mono text-xs space-y-1"
                 style={{ borderColor: "var(--border)", color: "var(--fg-muted)" }}>
-          <div>total supply: 21,000,000 NONCE</div>
+          <div>total supply: 21,000,000 BOW</div>
           <div>genesis: 5% (1.05M) · LP: 5% (1.05M) · mining: 90% (18.9M)</div>
           <div>retarget: every 2,016 mints, ±4× clamped</div>
           <div>halving: every 100,000 mints</div>
           <div>swap fee: 1% to controller</div>
           <div className="pt-3">
-            chain: Base mainnet (chainId 8453)
+            chain: Robinhood Chain (chainId 4663)
           </div>
           <div className="break-all">
             contract:{" "}
             <a
-              href={`https://basescan.org/address/${NONCE_ADDRESS}`}
+              href={`https://robinhoodchain.blockscout.com/address/${BOW_ADDRESS}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--accent)" }}
             >
-              {NONCE_ADDRESS}
+              {BOW_ADDRESS}
             </a>
           </div>
           <div>
@@ -83,13 +83,13 @@ export default function Page() {
           <div>
             x:{" "}
             <a
-              href="https://x.com/Nonceagent8004"
+              href="https://x.com/bowstring-tbd"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--accent)" }}
             >
-              @Nonceagent8004
+              @bowstring-tbd
             </a>
           </div>
         </footer>

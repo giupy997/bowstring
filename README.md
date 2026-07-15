@@ -1,46 +1,68 @@
-# NONCE — Base
+# BOWSTRING — Robinhood Chain
 
 Mined ERC-20 with a self-hook — the token contract IS its own Uniswap V4
 hook. One address, one bytecode: the token, the hook, and the PoW miner
 are the same contract.
 
-This repo is the **Base mainnet** fork of the original Ethereum mainnet
-project (`~/Desktop/pick`). Contract logic is identical; only the deploy
-script V4 addresses, frontend chain config, and explorer URLs differ.
+This repo is the **Robinhood Chain mainnet** (chainId 4663) fork of the
+Base project (`~/Desktop/daemon-base`, itself a fork of the original
+Ethereum project `~/Desktop/pick`). Contract logic is identical; only the
+deploy script V4 addresses, timing constants, frontend chain config, and
+explorer URLs differ.
 
 Logic forked 1:1 from `hash256.org` (MIT). Branding and frontend are new.
 
 ## Architecture
 
-- **Token** — ERC-20 named `Nonce` / `NONCE`, 21M cap, 18 decimals.
-- **Genesis sale** — 1.05M NONCE (5%) sold at `0.01 ETH` per `1,000 NONCE`,
+- **Token** — ERC-20 named `Bowstring` / `BOW`, 21M cap, 18 decimals.
+- **Genesis sale** — 1.05M BOW (5%) sold at `0.01 ETH` per `1,000 BOW`,
   max 5 units per tx. ETH raised goes into the Uniswap V4 pool.
 - **Pool seeding** — once genesis is sold out (or 30 min after deploy via
-  `partialSeed`), 1.05M NONCE + raised ETH form the V4 LP; the controller
+  `partialSeed`), 1.05M BOW + raised ETH form the V4 LP; the controller
   receives the LP position.
-- **Mining** — 18.9M NONCE (90%) released via PoW.
+- **Mining** — 18.9M BOW (90%) released via PoW.
   - Challenge: `keccak256(keccak256(chainId, contract, miner, epoch), nonce) < currentDifficulty`
-  - Epoch: every 100 blocks
-  - Reward: `100 NONCE >> era`, era = `totalMints / 100_000`
-  - Retarget: every 2016 mints, clamped ±4×
-  - Cap: 10 mints/block
+  - Epoch: every 100 blocks (~20 min, see block-number note below)
+  - Reward: `100 BOW >> era`, era = `totalMints / 100_000`
+  - Retarget: every 2016 mints, clamped ±4×, targeting ~1 mint / 10 min
+  - Cap: 1 mint/block
   - Replay protection: per-(miner, nonce, epoch)
 - **Self-hook** — 1% of every swap is taken as ETH and accumulated on the
   contract. `controller` (the address that deployed the contract) calls
   `claimFees()` to withdraw.
 
-> **Base block-time scaling applied.** Base produces ~2s blocks (vs
-> Ethereum's 12s), so the timing constants were scaled 6× to preserve
-> the original wall-clock tokenomics:
-> `EPOCH_BLOCKS = 600` → ~20 min epoch, `TARGET_BLOCKS_PER_MINT = 30` →
-> ~1 mint per minute. 18.9M NONCE released over ~131 days at target
-> rate, matching the Ethereum design intent.
+> **Robinhood Chain block-number semantics.** Robinhood Chain is an
+> Arbitrum-stack L2: inside the EVM, `block.number` returns the **parent
+> chain (Ethereum) height**, advancing every ~12 s — NOT the ~0.1 s L2
+> block index that the JSON-RPC layer reports. Verified on-chain
+> 2026-07-15 via `eth_call` state-override (NUMBER opcode == Ethereum
+> mainnet height). The timing constants therefore use the original
+> Ethereum-denominated values: `EPOCH_BLOCKS = 100` → ~20 min epoch,
+> `TARGET_BLOCKS_PER_MINT = 50` → ~1 mint / 10 min, 18.9M BOW released
+> over ~3.6 years at target rate.
+
+## Verified chain facts (2026-07-15)
+
+| Thing | Value |
+|-------|-------|
+| Chain id | 4663 |
+| RPC | `https://rpc.mainnet.chain.robinhood.com` |
+| Explorer | `https://robinhoodchain.blockscout.com` |
+| Gas token | ETH |
+| Uniswap V4 PoolManager | `0x8366a39CC670B4001A1121B8F6A443A643e40951` (code present ✓) |
+| Uniswap V4 PositionManager | `0x58daec3116aae6D93017bAAea7749052E8a04fA7` (code present ✓) |
+| Uniswap V4 Universal Router | `0x8876789976dEcBfCbBbe364623C63652db8C0904` |
+| Uniswap V4 Quoter | `0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94` |
+| Permit2 | `0x000000000022D473030F116dDEE9F6B43aC78BA3` (code present ✓) |
+| CREATE2 factory (Arachnid) | `0x4e59b44847b379578588920cA78FbF26c0B4956C` (code present ✓) |
+| Multicall3 | `0xcA11bde05977b3631167028862bE2a173976CA11` (code present ✓) |
+| `eth_getLogs` range | ~10k blocks per query (100k times out) |
 
 ## Setup
 
 ```bash
 cp .env.example .env
-# fill BASE_RPC, BASESCAN_KEY
+# fill ROBINHOOD_RPC (and BLOCKSCOUT verifier settings if verifying)
 forge build
 forge test
 ```
@@ -54,16 +76,15 @@ forge test
 
 ### 1. Fund the deploy wallet
 
-Send ≥ 0.005 ETH (Base ETH) to the EOA that will sign the deploy. Base
-gas is ~100× cheaper than mainnet so this covers a comfortable buffer.
-Bridge ETH from L1 → Base via the official bridge, or buy directly on
-Coinbase.
+Send ETH to the EOA that will sign the deploy (L2 gas is cheap; a small
+amount covers a comfortable buffer). Bridge via the official Robinhood
+Chain bridge.
 
-### 2. Dry-run against a Base fork
+### 2. Dry-run against a fork
 
 ```bash
 forge script script/Deploy.s.sol \
-  --rpc-url $BASE_RPC \
+  --rpc-url $ROBINHOOD_RPC \
   -vvv
 ```
 
@@ -73,38 +94,38 @@ The script:
 2. Logs the predicted address.
 3. Does NOT broadcast — review the logs.
 
-### 3. Real deployment (Base mainnet)
+### 3. Real deployment (Robinhood Chain mainnet)
 
 Pick **one** of these signing methods:
 
-**Foundry encrypted keystore** (`cast wallet import nonce-base --interactive`):
+**Foundry encrypted keystore** (`cast wallet import bowstring --interactive`):
 ```bash
 forge script script/Deploy.s.sol \
-  --rpc-url $BASE_RPC \
-  --account nonce-base \
+  --rpc-url $ROBINHOOD_RPC \
+  --account bowstring \
   --broadcast \
   --verify \
-  --verifier-url 'https://api.basescan.org/v2/api?chainid=8453' \
-  --etherscan-api-key $BASESCAN_KEY \
+  --verifier blockscout \
+  --verifier-url 'https://robinhoodchain.blockscout.com/api/' \
   --slow
 ```
 
 **Ledger:**
 ```bash
 forge script script/Deploy.s.sol \
-  --rpc-url $BASE_RPC \
+  --rpc-url $ROBINHOOD_RPC \
   --ledger \
   --sender 0xYourLedgerAddress \
   --broadcast \
   --verify \
-  --verifier-url 'https://api.basescan.org/v2/api?chainid=8453' \
-  --etherscan-api-key $BASESCAN_KEY
+  --verifier blockscout \
+  --verifier-url 'https://robinhoodchain.blockscout.com/api/'
 ```
 
 **Private key** (least safe, only for testnets / throwaway wallets):
 ```bash
 PRIVATE_KEY=0x... forge script script/Deploy.s.sol \
-  --rpc-url $BASE_RPC \
+  --rpc-url $ROBINHOOD_RPC \
   --private-key $PRIVATE_KEY \
   --broadcast
 ```
@@ -114,9 +135,10 @@ PRIVATE_KEY=0x... forge script script/Deploy.s.sol \
 After the tx confirms:
 
 - Verify the deployed address matches the predicted one (`broadcast/`).
-- Verify on Basescan the source is shown (`--verify` flag did this).
+- Verify on Blockscout the source is shown (`--verify` flag did this).
 - Read `controller()` — must be your deploy EOA.
 - Read `genesisComplete()` — must be `false`.
+- Fill `BOW_ADDRESS` in `web/src/lib/contract.ts`.
 
 ### 5. Opening genesis
 
@@ -138,15 +160,18 @@ call, `mine()` becomes callable.
 ### 7. Deploy MinerAgent (optional but recommended)
 
 ```bash
-NONCE_ADDRESS=0xYourNonce \
+BOW_ADDRESS=0xYourBowstring \
 forge script script/DeployMinerAgent.s.sol \
-  --rpc-url $BASE_RPC \
-  --account nonce-base \
+  --rpc-url $ROBINHOOD_RPC \
+  --account bowstring \
   --broadcast \
   --verify \
-  --verifier-url 'https://api.basescan.org/v2/api?chainid=8453' \
-  --etherscan-api-key $BASESCAN_KEY
+  --verifier blockscout \
+  --verifier-url 'https://robinhoodchain.blockscout.com/api/'
 ```
+
+Then fill `MINER_AGENT_ADDRESS` in `web/src/lib/contract.ts` and flip
+`CLAIM_LIVE` in `MinerAgent.tsx`.
 
 ### 8. Wire MinerAgent metadata
 
@@ -155,24 +180,36 @@ MINER_AGENT_ADDRESS=0xYourMinerAgent \
 BASE_URI="https://YOUR_DOMAIN/api/agent/" \
 CONTRACT_URI="https://YOUR_DOMAIN/api/collection" \
 forge script script/SetMinerAgentURI.s.sol \
-  --rpc-url $BASE_RPC \
-  --account nonce-base \
+  --rpc-url $ROBINHOOD_RPC \
+  --account bowstring \
   --broadcast
 ```
 
-### 9. Register on ERC-8004 (when the registry exists on Base)
+### 9. Register on ERC-8004 (when a registry exists on Robinhood Chain)
 
 ```bash
 AGENT_URI="https://YOUR_DOMAIN/agent.json" \
 IDENTITY_REGISTRY=0x...                    \
 forge script script/RegisterAgent.s.sol  \
-  --rpc-url $BASE_RPC --account nonce-base --broadcast
+  --rpc-url $ROBINHOOD_RPC --account bowstring --broadcast
 ```
 
-The ERC-8004 IdentityRegistry on Base must be supplied via the
-`IDENTITY_REGISTRY` env var — there's no hardcoded canonical address in
-the script for Base yet. Check 8004scan.io or the EIP repo for the
-current Base deployment before running.
+The ERC-8004 IdentityRegistry address on Robinhood Chain must be supplied
+via the `IDENTITY_REGISTRY` env var — no canonical deployment is known on
+4663 yet. Check 8004scan.io or the EIP repo before running; after
+registration, fill the agent id into the NFT metadata routes
+(`web/src/app/api/agent/[id]/route.ts`, `api/collection/route.ts`).
+
+## Pre-launch checklist (branding)
+
+- [ ] Domain: replace `bowstring-tbd.com` placeholders (`layout.tsx`,
+      `api/collection/route.ts`) and the `Site:`/`X:` lines in
+      `src/Bowstring.sol` — the contract header is immutable once deployed.
+- [ ] `NEXT_PUBLIC_WC_PROJECT_ID` (Reown/WalletConnect) in Netlify env.
+- [ ] NFT artworks: the 10 IPFS artworks referenced by
+      `api/agent/[id]/route.ts` are still the NONCE set — regenerate or
+      re-pin for the Bowstring brand.
+- [ ] `web/public/logo.png` + hero art still NONCE-branded.
 
 ## Testing
 
@@ -180,9 +217,10 @@ current Base deployment before running.
 forge test -vv
 ```
 
-The 49 unit tests cover the contract surface (mine, genesis, refund,
+The unit tests cover the contract surface (mine, genesis, refund,
 seed, swap, claim, soulbound NFT, tier resolution). They are
-chain-agnostic — no fork required.
+chain-agnostic — no fork required. Fork tests (`BowstringFork`) run
+against `ROBINHOOD_RPC`.
 
 ## Storage layout
 

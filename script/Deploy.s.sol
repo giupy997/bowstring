@@ -2,30 +2,31 @@
 pragma solidity ^0.8.26;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {Nonce} from "../src/Nonce.sol";
+import {Bowstring} from "../src/Bowstring.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
-/// @notice Deploys Nonce via the canonical deterministic-deployer factory
+/// @notice Deploys Bowstring via the canonical deterministic-deployer factory
 ///         (0x4e59b44847b379578588920cA78FbF26c0B4956C, Arachnid's proxy)
 ///         after mining a CREATE2 salt that yields an address whose
 ///         lower 14 bits match the V4 hook permission flags.
 ///
-///         This fork targets **Base mainnet** (chainId 8453). V4 addresses
-///         below are the canonical Base deployment; verify against
-///         https://docs.uniswap.org/contracts/v4/deployments before each
-///         production run (Uniswap can republish at new addresses).
+///         This fork targets **Robinhood Chain mainnet** (chainId 4663).
+///         V4 addresses below are the canonical day-one deployment; verify
+///         against https://docs.uniswap.org/contracts/v4/deployments before
+///         each production run (Uniswap can republish at new addresses).
+///         CREATE2 factory presence on 4663 verified on-chain 2026-07-15.
 ///
 /// Required env:
 ///   PRIVATE_KEY or use --ledger / --account
-///   POOL_MANAGER (optional, defaults to Base)
-///   POSITION_MANAGER (optional, defaults to Base)
+///   POOL_MANAGER (optional, defaults to Robinhood Chain)
+///   POSITION_MANAGER (optional, defaults to Robinhood Chain)
 ///   PERMIT2 (optional, defaults to canonical)
 contract Deploy is Script {
     // CREATE2_FACTORY (0x4e59...956C) is inherited from forge-std/Base.sol
 
-    // Base mainnet (chainId 8453) — Uniswap V4 canonical deployment.
-    address constant BASE_POOL_MANAGER     = 0x498581fF718922c3f8e6A244956aF099B2652b2b;
-    address constant BASE_POSITION_MANAGER = 0x7C5f5A4bBd8fD63184577525326123B519429bDc;
+    // Robinhood Chain mainnet (chainId 4663) — Uniswap V4 canonical deployment.
+    address constant RH_POOL_MANAGER     = 0x8366a39CC670B4001A1121B8F6A443A643e40951;
+    address constant RH_POSITION_MANAGER = 0x58daec3116aae6D93017bAAea7749052E8a04fA7;
     // Permit2 is deterministically deployed at the same address on every
     // EVM chain — same value as on Ethereum mainnet.
     address constant CANONICAL_PERMIT2     = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
@@ -37,12 +38,12 @@ contract Deploy is Script {
     uint160 constant HOOK_MASK  = uint160(0x3FFF);
 
     function run() external {
-        address poolManager     = _envOr("POOL_MANAGER", BASE_POOL_MANAGER);
-        address positionManager = _envOr("POSITION_MANAGER", BASE_POSITION_MANAGER);
+        address poolManager     = _envOr("POOL_MANAGER", RH_POOL_MANAGER);
+        address positionManager = _envOr("POSITION_MANAGER", RH_POSITION_MANAGER);
         address permit2         = _envOr("PERMIT2", CANONICAL_PERMIT2);
 
         bytes memory initCode = abi.encodePacked(
-            type(Nonce).creationCode,
+            type(Bowstring).creationCode,
             abi.encode(poolManager, positionManager, permit2)
         );
         bytes32 initCodeHash = keccak256(initCode);
@@ -63,7 +64,7 @@ contract Deploy is Script {
 
         require(predicted.code.length > 0, "no code at predicted address");
         require(uint160(predicted) & HOOK_MASK == HOOK_FLAGS, "hook bits mismatch");
-        console2.log("Nonce deployed:  ", predicted);
+        console2.log("Bowstring deployed:  ", predicted);
         console2.log("Controller (tx.origin):", tx.origin);
     }
 

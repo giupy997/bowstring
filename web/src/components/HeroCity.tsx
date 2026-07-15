@@ -15,7 +15,7 @@ export function HeroCity() {
         viewBox="0 0 1600 720"
         preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"
-        aria-label="Nonce city — agents at work"
+        aria-label="Bowstring city — agents at work"
         role="img"
       >
         <defs>

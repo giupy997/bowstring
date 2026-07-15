@@ -7,8 +7,8 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import Image from "next/image";
-import { NONCE_ADDRESS, NONCE_SYMBOL, MINER_AGENT_ADDRESS } from "@/lib/contract";
-import { nonceAbi } from "@/lib/nonceAbi";
+import { BOW_ADDRESS, BOW_SYMBOL, MINER_AGENT_ADDRESS } from "@/lib/contract";
+import { bowstringAbi } from "@/lib/bowstringAbi";
 import { minerAgentAbi } from "@/lib/minerAgentAbi";
 import { formatUnits } from "viem";
 
@@ -37,7 +37,7 @@ const TIERS = [
   {
     key: "initiate",
     name: "Initiate",
-    images: ["/nft/NONCE_1.png", "/nft/NONCE_2.png"] as const,
+    images: ["/nft/BOW_1.png", "/nft/BOW_2.png"] as const,
     states: ["Genesis Signal", "Pending State"] as const,
     threshold: "< 1,000",
     minWei: 0n,
@@ -45,7 +45,7 @@ const TIERS = [
   {
     key: "bronze",
     name: "Bronze",
-    images: ["/nft/NONCE_3.png", "/nft/NONCE_4.png"] as const,
+    images: ["/nft/BOW_3.png", "/nft/BOW_4.png"] as const,
     states: ["Ordered Execution", "Verified State"] as const,
     threshold: "1k – 9.9k",
     minWei: 1_000n * 10n ** 18n,
@@ -53,7 +53,7 @@ const TIERS = [
   {
     key: "silver",
     name: "Silver",
-    images: ["/nft/NONCE_5.png", "/nft/NONCE_6.png"] as const,
+    images: ["/nft/BOW_5.png", "/nft/BOW_6.png"] as const,
     states: ["Replay Barrier", "Finalized State"] as const,
     threshold: "10k – 99.9k",
     minWei: 10_000n * 10n ** 18n,
@@ -61,7 +61,7 @@ const TIERS = [
   {
     key: "gold",
     name: "Gold",
-    images: ["/nft/NONCE_7.png", "/nft/NONCE_8.png"] as const,
+    images: ["/nft/BOW_7.png", "/nft/BOW_8.png"] as const,
     states: ["Archived State", "Echo State"] as const,
     threshold: "100k – 999.9k",
     minWei: 100_000n * 10n ** 18n,
@@ -69,14 +69,14 @@ const TIERS = [
   {
     key: "platinum",
     name: "Platinum",
-    images: ["/nft/NONCE_9.png", "/nft/NONCE_10.png"] as const,
+    images: ["/nft/BOW_9.png", "/nft/BOW_10.png"] as const,
     states: ["Transition State", "Confirmation State"] as const,
     threshold: "≥ 1M",
     minWei: 1_000_000n * 10n ** 18n,
   },
 ] as const;
 
-const MIN_TO_CLAIM = 10n ** 18n; // 1 NONCE
+const MIN_TO_CLAIM = 10n ** 18n; // 1 BOW
 
 function tierIndexFor(balance: bigint): number {
   if (balance >= TIERS[4].minWei) return 4;
@@ -89,10 +89,10 @@ function tierIndexFor(balance: bigint): number {
 export function MinerAgent() {
   const { address, isConnected } = useAccount();
 
-  // Always read NONCE balance to show the tier preview (regardless of CLAIM_LIVE).
+  // Always read BOW balance to show the tier preview (regardless of CLAIM_LIVE).
   const { data: balance } = useReadContract({
-    address: NONCE_ADDRESS,
-    abi: nonceAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
     query: { enabled: !!address },
@@ -138,7 +138,7 @@ export function MinerAgent() {
       return {
         label: "claim — live after production deploy",
         disabled: true,
-        hint: "MinerAgent ships on the same tx batch as the production Nonce launch.",
+        hint: "MinerAgent ships on the same tx batch as the production Bowstring launch.",
       };
     }
     if (!isConnected) {
@@ -153,7 +153,7 @@ export function MinerAgent() {
     }
     if (!eligible) {
       return {
-        label: `need ≥ 1 ${NONCE_SYMBOL} to claim`,
+        label: `need ≥ 1 ${BOW_SYMBOL} to claim`,
         disabled: true,
         hint: "buy in genesis or earn via mining first",
       };
@@ -212,10 +212,10 @@ export function MinerAgent() {
       >
         One badge per address, permanently bound to the wallet that claims it.
         10 artworks total — 5 tiers × 2 variants. Your tier scales with live{" "}
-        {NONCE_SYMBOL} holdings (the NFT visibly upgrades as you accumulate);
+        {BOW_SYMBOL} holdings (the NFT visibly upgrades as you accumulate);
         the variant is fixed at mint, hashed deterministically from your
         tokenId. Each artwork represents a state in a transaction lifecycle.
-        Minimum 1 {NONCE_SYMBOL} held to claim.
+        Minimum 1 {BOW_SYMBOL} held to claim.
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
@@ -275,7 +275,7 @@ export function MinerAgent() {
                   className="font-mono text-xs"
                   style={{ color: "var(--fg-muted)" }}
                 >
-                  {t.threshold} {NONCE_SYMBOL}
+                  {t.threshold} {BOW_SYMBOL}
                 </span>
                 <span
                   className="font-mono text-[10px]"
@@ -306,7 +306,7 @@ export function MinerAgent() {
                   {Number(formatUnits(userBalance, 18)).toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })}{" "}
-                  {NONCE_SYMBOL}
+                  {BOW_SYMBOL}
                 </span>
               </div>
               <div>
@@ -318,7 +318,7 @@ export function MinerAgent() {
                 >
                   {eligible
                     ? TIERS[currentTier].name
-                    : `not eligible (need ≥ 1 ${NONCE_SYMBOL})`}
+                    : `not eligible (need ≥ 1 ${BOW_SYMBOL})`}
                 </span>
               </div>
             </>
@@ -386,7 +386,7 @@ export function MinerAgent() {
               <div>
                 tx:{" "}
                 <a
-                  href={`https://basescan.org/tx/${txHash}`}
+                  href={`https://robinhoodchain.blockscout.com/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: "var(--accent)" }}
@@ -404,7 +404,7 @@ export function MinerAgent() {
                       {" "}
                       — #{mintedTokenId.toString()}{" "}
                       <a
-                        href={`https://opensea.io/assets/base/${MINER_AGENT_ADDRESS}/${mintedTokenId.toString()}`}
+                        href={`https://robinhoodchain.blockscout.com/token/${MINER_AGENT_ADDRESS}/instance/${mintedTokenId.toString()}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: "var(--accent)" }}

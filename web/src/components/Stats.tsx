@@ -2,8 +2,8 @@
 
 import { useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
-import { nonceAbi } from "@/lib/nonceAbi";
-import { NONCE_ADDRESS } from "@/lib/contract";
+import { bowstringAbi } from "@/lib/bowstringAbi";
+import { BOW_ADDRESS } from "@/lib/contract";
 
 type StatCardProps = {
   label: string;
@@ -50,7 +50,7 @@ function ProgressBar({ value, max }: { value: bigint; max: bigint }) {
         <span>{formatPct(pct)}</span>
         <span>
           {formatUnits(value, 18).split(".")[0]} /{" "}
-          {formatUnits(max, 18).split(".")[0]} NONCE
+          {formatUnits(max, 18).split(".")[0]} BOW
         </span>
       </div>
     </div>
@@ -86,10 +86,10 @@ const PLACEHOLDER = "—";
 export function Stats() {
   const reads = useReadContracts({
     contracts: [
-      { address: NONCE_ADDRESS, abi: nonceAbi, functionName: "miningState" },
-      { address: NONCE_ADDRESS, abi: nonceAbi, functionName: "genesisState" },
-      { address: NONCE_ADDRESS, abi: nonceAbi, functionName: "MINING_SUPPLY" },
-      { address: NONCE_ADDRESS, abi: nonceAbi, functionName: "GENESIS_CAP" },
+      { address: BOW_ADDRESS, abi: bowstringAbi, functionName: "miningState" },
+      { address: BOW_ADDRESS, abi: bowstringAbi, functionName: "genesisState" },
+      { address: BOW_ADDRESS, abi: bowstringAbi, functionName: "MINING_SUPPLY" },
+      { address: BOW_ADDRESS, abi: bowstringAbi, functionName: "GENESIS_CAP" },
     ],
     query: { refetchInterval: 12_000 },
   });
@@ -135,7 +135,7 @@ export function Stats() {
         />
         <StatCard
           label="reward"
-          value={`${formatUnits(reward, 18)} NONCE`}
+          value={`${formatUnits(reward, 18)} BOW`}
         />
         <StatCard
           label="difficulty"

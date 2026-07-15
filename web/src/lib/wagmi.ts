@@ -1,31 +1,49 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { base, baseSepolia } from "wagmi/chains";
-import { http } from "viem";
+import { defineChain, http } from "viem";
 
 // Get a free project id at https://cloud.reown.com (formerly WalletConnect Cloud).
 // Until you set NEXT_PUBLIC_WC_PROJECT_ID, WalletConnect-based wallets (Rainbow,
 // Trust, etc.) will not function in this app. MetaMask works regardless.
 const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "PLACEHOLDER";
 
-const rpcBase        = process.env.NEXT_PUBLIC_BASE_RPC;
-const rpcBaseSepolia = process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC;
-
-// Default RPCs when the env vars aren't wired up yet. PublicNode is free,
-// no API key, supports the canonical multicall3 contract that wagmi's
-// useReadContracts batches through. For production load swap these for a
-// dedicated endpoint (Alchemy / QuickNode) by setting NEXT_PUBLIC_BASE_RPC
-// in the Netlify dashboard.
-const DEFAULT_BASE_RPC         = "https://base-rpc.publicnode.com";
-const DEFAULT_BASE_SEPOLIA_RPC = "https://base-sepolia-rpc.publicnode.com";
+// Robinhood Chain mainnet — Arbitrum-stack L2, gas in ETH, chainId 4663.
+// Not shipped in wagmi/chains yet, so we define it ourselves.
+// multicall3 presence verified on-chain 2026-07-15 (canonical address),
+// so wagmi's useReadContracts batching works out of the box.
+export const robinhoodChain = defineChain({
+  id: 4663,
+  name: "Robinhood Chain",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [
+        process.env.NEXT_PUBLIC_ROBINHOOD_RPC ??
+          "https://rpc.mainnet.chain.robinhood.com",
+      ],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Blockscout",
+      url: "https://robinhoodchain.blockscout.com",
+    },
+  },
+  contracts: {
+    multicall3: {
+      address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    },
+  },
+});
 
 export const config = getDefaultConfig({
-  appName: "Nonce",
+  appName: "Bowstring",
   projectId,
-  // Base first so RainbowKit defaults to it.
-  chains: [base, baseSepolia],
+  chains: [robinhoodChain],
   transports: {
-    [base.id]:        http(rpcBase        ?? DEFAULT_BASE_RPC),
-    [baseSepolia.id]: http(rpcBaseSepolia ?? DEFAULT_BASE_SEPOLIA_RPC),
+    [robinhoodChain.id]: http(
+      process.env.NEXT_PUBLIC_ROBINHOOD_RPC ??
+        "https://rpc.mainnet.chain.robinhood.com"
+    ),
   },
   ssr: true,
 });

@@ -7,13 +7,13 @@ import {
   useBlockNumber,
 } from "wagmi";
 import { formatUnits, parseAbiItem, type Address } from "viem";
-import { NONCE_ADDRESS, NONCE_SYMBOL } from "@/lib/contract";
+import { BOW_ADDRESS, BOW_SYMBOL } from "@/lib/contract";
 
 /**
- * Unified on-chain activity feed for the Nonce contract. Surfaces the three
+ * Unified on-chain activity feed for the Bowstring contract. Surfaces the three
  * meaningful event types into a single chronological list:
  *
- *   - GenesisMint   buyer paid ETH for raw NONCE during the pre-seed phase
+ *   - GenesisMint   buyer paid ETH for raw BOW during the pre-seed phase
  *   - Mined         miner found a valid nonce, received the era's reward
  *   - FeeCollected  someone swapped on the V4 pool, 1% landed on the contract
  *
@@ -32,8 +32,8 @@ type Activity = {
   kind: Kind;
   actor: Address;
   /** Amount tied to the event:
-   *  - genesis: NONCE tokens minted
-   *  - mined: NONCE reward
+   *  - genesis: BOW tokens minted
+   *  - mined: BOW reward
    *  - buy/sell: ETH fee (1% of trade size) */
   amount: bigint;
   txHash: `0x${string}`;
@@ -46,18 +46,18 @@ type Activity = {
 // (see render), so a larger window here just means more history available
 // to the user without growing the visible panel.
 const MAX_VISIBLE = 30;
-// 10k blocks = ~5.5 hours on Base at 2s/block. Public RPCs (publicnode,
-// alchemy free tier) cap getLogs ranges around 10k blocks per call;
-// anything larger gets rejected as "range too large". For a recent-
-// activity feed 5.5 hours is plenty — older history can be re-fetched
-// in chunks if we ever need it.
+// Robinhood Chain produces L2 blocks every ~0.1s, and the official RPC
+// times out on getLogs ranges much above 10k blocks (verified 2026-07-15:
+// 10k ok, 100k "log query timed out"). 10k blocks ≈ 17 minutes of
+// history — fine for a live-activity feed; older history can be
+// re-fetched in chunks if we ever need it.
 const LOOKBACK_BLOCKS = 10_000n;
-const SECONDS_PER_BLOCK = 2;      // Base produces a block every ~2 seconds
+const SECONDS_PER_BLOCK = 0.1;    // Robinhood Chain L2 cadence (~0.1s)
 
 /**
- * Estimate the wall-clock time a past block was mined at. Base is rock-
- * steady at ~2s/block; this is accurate to within a few seconds across
- * recent ranges. Avoids an extra `getBlock` round-trip per event.
+ * Estimate the wall-clock time a past block was mined at from its L2
+ * block height. Accurate to within seconds across recent ranges and
+ * avoids an extra `getBlock` round-trip per event.
  */
 function blockTimestampMs(eventBlock: bigint, currentBlock: bigint): number {
   const blocksAgo = Number(currentBlock - eventBlock);
@@ -102,7 +102,7 @@ function labelFor(act: Activity): { tag: string; color: string; line: React.Reac
             {actor}{" "}
             <span style={{ color: "var(--fg)" }}>bought</span>{" "}
             <span style={{ color: "var(--accent)" }}>
-              {formatUnits(act.amount, 18)} {NONCE_SYMBOL}
+              {formatUnits(act.amount, 18)} {BOW_SYMBOL}
             </span>
           </>
         ),
@@ -116,7 +116,7 @@ function labelFor(act: Activity): { tag: string; color: string; line: React.Reac
             {actor}{" "}
             <span style={{ color: "var(--fg)" }}>mined</span>{" "}
             <span style={{ color: "var(--accent)" }}>
-              {formatUnits(act.amount, 18)} {NONCE_SYMBOL}
+              {formatUnits(act.amount, 18)} {BOW_SYMBOL}
             </span>
           </>
         ),
@@ -130,7 +130,7 @@ function labelFor(act: Activity): { tag: string; color: string; line: React.Reac
           <>
             {actor}{" "}
             <span style={{ color: "var(--fg)" }}>
-              {act.kind === "buy" ? "bought" : "sold"} NONCE, fee
+              {act.kind === "buy" ? "bought" : "sold"} BOW, fee
             </span>{" "}
             <span style={{ color: "var(--accent)" }}>
               {formatUnits(act.amount, 18)} ETH
@@ -178,7 +178,7 @@ export function RecentMints() {
         const fromBlock =
           currentBlock > LOOKBACK_BLOCKS ? currentBlock - LOOKBACK_BLOCKS : 0n;
         const baseFilter = {
-          address: NONCE_ADDRESS,
+          address: BOW_ADDRESS,
           fromBlock,
           toBlock: currentBlock,
         } as const;
@@ -258,7 +258,7 @@ export function RecentMints() {
 
   // ─── Live watchers ──────────────────────────────────────────────────
   useWatchContractEvent({
-    address: NONCE_ADDRESS,
+    address: BOW_ADDRESS,
     abi: [eventGenesisMint],
     eventName: "GenesisMint",
     onLogs(logs) {
@@ -278,7 +278,7 @@ export function RecentMints() {
   });
 
   useWatchContractEvent({
-    address: NONCE_ADDRESS,
+    address: BOW_ADDRESS,
     abi: [eventMined],
     eventName: "Mined",
     onLogs(logs) {
@@ -297,7 +297,7 @@ export function RecentMints() {
   });
 
   useWatchContractEvent({
-    address: NONCE_ADDRESS,
+    address: BOW_ADDRESS,
     abi: [eventFeeCollected],
     eventName: "FeeCollected",
     onLogs(logs) {
@@ -361,7 +361,7 @@ export function RecentMints() {
                   <span className="truncate">{meta.line}</span>
                 </span>
                 <a
-                  href={`https://basescan.org/tx/${a.txHash}`}
+                  href={`https://robinhoodchain.blockscout.com/tx/${a.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="shrink-0 text-xs hover:underline"

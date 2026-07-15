@@ -1,4 +1,4 @@
-export const nonceAbi = [
+export const bowstringAbi = [
   {
     "type": "constructor",
     "inputs": [

@@ -12,11 +12,11 @@
 //
 // which routes here. We then:
 //   1. Read ownerOf(tokenId) on MinerAgent to get the holder.
-//   2. Read balanceOf(owner) on Nonce to get their current token holdings.
+//   2. Read balanceOf(owner) on Bowstring to get their current token holdings.
 //   3. Map balance → tier (Initiate / Bronze / Silver / Gold / Platinum).
 //   4. Map tokenId → variant (0 or 1) via deterministic hash, mirroring
 //      MinerAgent.variantOf(tokenId).
-//   5. Return OpenSea-compatible JSON pointing at the matching NONCE_*.png.
+//   5. Return OpenSea-compatible JSON pointing at the matching BOW_*.png.
 //
 // 10 NFT artworks total (5 tiers × 2 variants), each named after a state
 // in a transaction lifecycle. The variant is fixed per tokenId; the tier
@@ -31,17 +31,22 @@ import {
   encodeAbiParameters,
   keccak256,
 } from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { defineChain } from "viem";
 
 // ───────── Configuration ─────────
-const CHAIN_ID = Number(process.env.NFT_CHAIN_ID ?? "8453"); // Base mainnet
-const CHAIN = CHAIN_ID === 84532 ? baseSepolia : base;
+// Robinhood Chain mainnet (4663). Defined inline: wagmi/viem don't ship it,
+// and importing lib/wagmi here would drag RainbowKit into a route handler.
+const CHAIN_ID = Number(process.env.NFT_CHAIN_ID ?? "4663");
 const RPC_URL =
-  process.env.NFT_RPC_URL ?? (CHAIN_ID === 84532
-    ? "https://base-sepolia-rpc.publicnode.com"
-    : "https://base-rpc.publicnode.com");
+  process.env.NFT_RPC_URL ?? "https://rpc.mainnet.chain.robinhood.com";
+const CHAIN = defineChain({
+  id: CHAIN_ID,
+  name: "Robinhood Chain",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: [RPC_URL] } },
+});
 
-const NONCE_ADDRESS = (process.env.NFT_NONCE_ADDRESS ??
+const BOW_ADDRESS = (process.env.NFT_BOW_ADDRESS ??
   "0x0000000000000000000000000000000000000000") as `0x${string}`;
 const MINER_AGENT_ADDRESS = (process.env.NFT_MINER_AGENT_ADDRESS ??
   "0x0000000000000000000000000000000000000000") as `0x${string}`;
@@ -52,19 +57,19 @@ const minerAgentAbi = parseAbi([
   "function ownerOf(uint256 tokenId) view returns (address)",
 ]);
 
-const nonceAbi = parseAbi([
+const bowstringAbi = parseAbi([
   "function balanceOf(address account) view returns (uint256)",
 ]);
 
 // ───────── Tier × variant table ─────────
 //
-// Each tier has TWO artwork variants drawn from the 10-piece NONCE
+// Each tier has TWO artwork variants drawn from the 10-piece BOW
 // collection. Mapping by narrative progression: token #1 (Genesis Signal)
 // goes to the Initiate tier (start of the journey); token #10
 // (Confirmation State) goes to Platinum (final state).
 //
 // Images pinned to IPFS via Pinata as a single CIDv1 folder. Each NFT's
-// image field resolves to ipfs://<folder>/NONCE_X.png — every wallet and
+// image field resolves to ipfs://<folder>/BOW_X.png — every wallet and
 // marketplace (OpenSea / MetaMask / Rarible / Blur) accepts the ipfs://
 // scheme and resolves through its preferred gateway. The folder pin is
 // content-addressed, so the URLs are provably immutable forever; even if
@@ -82,50 +87,50 @@ type Tier = {
   color: string;
   /** Same color without "#", OpenSea spec for background_color. */
   bg: string;
-  /** Floor balance in whole NONCE to qualify for this tier. */
-  minNonce: number;
+  /** Floor balance in whole BOW to qualify for this tier. */
+  minBowstring: number;
 };
 
 const TIERS = {
   platinum: {
     name: "Platinum",
-    variants: [`${IPFS_ROOT}/NONCE_9.png`, `${IPFS_ROOT}/NONCE_10.png`],
+    variants: [`${IPFS_ROOT}/BOW_9.png`, `${IPFS_ROOT}/BOW_10.png`],
     variantNames: ["Transition State", "Confirmation State"],
     color: "#e5e4e2",
     bg: "0e0e0d",
-    minNonce: 1_000_000,
+    minBowstring: 1_000_000,
   },
   gold: {
     name: "Gold",
-    variants: [`${IPFS_ROOT}/NONCE_7.png`, `${IPFS_ROOT}/NONCE_8.png`],
+    variants: [`${IPFS_ROOT}/BOW_7.png`, `${IPFS_ROOT}/BOW_8.png`],
     variantNames: ["Archived State", "Echo State"],
     color: "#f4c430",
     bg: "0e0a02",
-    minNonce: 100_000,
+    minBowstring: 100_000,
   },
   silver: {
     name: "Silver",
-    variants: [`${IPFS_ROOT}/NONCE_5.png`, `${IPFS_ROOT}/NONCE_6.png`],
+    variants: [`${IPFS_ROOT}/BOW_5.png`, `${IPFS_ROOT}/BOW_6.png`],
     variantNames: ["Replay Barrier", "Finalized State"],
     color: "#c0c0c8",
     bg: "0c0c10",
-    minNonce: 10_000,
+    minBowstring: 10_000,
   },
   bronze: {
     name: "Bronze",
-    variants: [`${IPFS_ROOT}/NONCE_3.png`, `${IPFS_ROOT}/NONCE_4.png`],
+    variants: [`${IPFS_ROOT}/BOW_3.png`, `${IPFS_ROOT}/BOW_4.png`],
     variantNames: ["Ordered Execution", "Verified State"],
     color: "#cd7f32",
     bg: "0e0801",
-    minNonce: 1_000,
+    minBowstring: 1_000,
   },
   initiate: {
     name: "Initiate",
-    variants: [`${IPFS_ROOT}/NONCE_1.png`, `${IPFS_ROOT}/NONCE_2.png`],
+    variants: [`${IPFS_ROOT}/BOW_1.png`, `${IPFS_ROOT}/BOW_2.png`],
     variantNames: ["Genesis Signal", "Pending State"],
     color: "#7a7a82",
     bg: "08080a",
-    minNonce: 0,
+    minBowstring: 0,
   },
 } as const satisfies Record<string, Tier>;
 
@@ -139,7 +144,7 @@ function tierFor(balance: bigint): Tier {
 
 /**
  * Mirrors MinerAgent.variantOf(tokenId) on-chain. Solidity computes
- *   keccak256(abi.encode(tokenId, "nonce-variant")) % 2
+ *   keccak256(abi.encode(tokenId, "bowstring-variant")) % 2
  * viem's encodeAbiParameters produces byte-identical input to Solidity's
  * abi.encode, so the resulting hash matches and the JS/Solidity answer
  * agrees for any tokenId.
@@ -147,7 +152,7 @@ function tierFor(balance: bigint): Tier {
 function variantFor(tokenId: bigint): 0 | 1 {
   const encoded = encodeAbiParameters(
     [{ type: "uint256" }, { type: "string" }],
-    [tokenId, "nonce-variant"]
+    [tokenId, "bowstring-variant"]
   );
   const hash = keccak256(encoded);
   return Number(BigInt(hash) % 2n) as 0 | 1;
@@ -187,10 +192,10 @@ export async function GET(
     );
   }
 
-  // Resolve current NONCE balance and pick the tier + variant.
+  // Resolve current BOW balance and pick the tier + variant.
   const balance = await client.readContract({
-    address: NONCE_ADDRESS,
-    abi: nonceAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "balanceOf",
     args: [owner],
   });
@@ -202,22 +207,22 @@ export async function GET(
   const nonceHeld = Number(balance / 10n ** 18n);
 
   const metadata = {
-    name: `Nonce Miner Agent #${tokenId} — ${variantName}`,
+    name: `Bowstring Miner Agent #${tokenId} — ${variantName}`,
     description:
-      `${variantName.toUpperCase()}. NONCE Miner Agent — soulbound ERC-8004 ` +
-      "identity attached to the autonomous Nonce agent registered as " +
-      "**Agent #51672** on the canonical ERC-8004 IdentityRegistry on " +
-      "Base. The tier badge reflects the holder's live NONCE balance, " +
+      `${variantName.toUpperCase()}. BOW Miner Agent — soulbound ERC-8004 ` +
+      "identity attached to the autonomous Bowstring agent on Robinhood " +
+      "Chain. The tier badge reflects the holder's live BOW balance, " +
       "so the NFT visually upgrades as you accumulate. The variant is " +
       "fixed at mint time, hashed deterministically from the tokenId. " +
-      "Minimum 1 NONCE held to claim; transfers are blocked at the " +
+      "Minimum 1 BOW held to claim; transfers are blocked at the " +
       "contract level.",
     // variantPath is already a full ipfs:// URI — no origin prefix needed.
     image: variantPath,
     background_color: tier.bg,
-    // External link points to the agent's 8004scan page (parent identity)
-    // so a viewer on OpenSea can jump straight to the registry-level view.
-    external_url: "https://8004scan.io/agents/base/51672",
+    // TODO(post-registration): point at the agent's registry page once
+    // Bowstring is registered on an ERC-8004 IdentityRegistry reachable
+    // from Robinhood Chain (see script/RegisterAgent.s.sol).
+    external_url: "https://robinhoodchain.blockscout.com/token/" + MINER_AGENT_ADDRESS,
     attributes: [
       { trait_type: "Tier", value: tier.name },
       { trait_type: "State", value: variantName },
@@ -228,20 +233,20 @@ export async function GET(
       },
       {
         display_type: "number",
-        trait_type: "NONCE Held",
+        trait_type: "BOW Held",
         value: nonceHeld,
       },
       {
         display_type: "number",
         trait_type: "Tier Floor",
-        value: tier.minNonce,
+        value: tier.minBowstring,
       },
       { trait_type: "Agent Wallet", value: owner },
       { trait_type: "Tier Color", value: tier.color },
-      // ERC-8004 backlink — every NFT in this collection is owned by the
-      // same parent agent on the on-chain ERC-8004 IdentityRegistry.
-      { trait_type: "ERC-8004 Agent", value: "Base #51672" },
-      { trait_type: "Agent Network", value: "Base" },
+      // ERC-8004 backlink — fill the agent id in once Bowstring is
+      // registered on an ERC-8004 IdentityRegistry (RegisterAgent.s.sol).
+      { trait_type: "ERC-8004 Agent", value: "TBD" },
+      { trait_type: "Agent Network", value: "Robinhood Chain" },
     ],
   };
 

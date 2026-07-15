@@ -2,13 +2,14 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {Nonce} from "../src/Nonce.sol";
+import {Bowstring} from "../src/Bowstring.sol";
 
-/// @notice End-to-end fork tests against mainnet V4. Requires MAINNET_RPC env.
-///         Run with:  forge test --match-contract NonceFork -vv
-contract NonceForkTest is Test {
-    address constant POOL_MANAGER     = 0x000000000004444c5dc75cB358380D2e3dE08A90;
-    address constant POSITION_MANAGER = 0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e;
+/// @notice End-to-end fork tests against Robinhood Chain V4. Requires
+///         ROBINHOOD_RPC env (https://rpc.mainnet.chain.robinhood.com).
+///         Run with:  forge test --match-contract BowstringFork -vv
+contract BowstringForkTest is Test {
+    address constant POOL_MANAGER     = 0x8366a39CC670B4001A1121B8F6A443A643e40951;
+    address constant POSITION_MANAGER = 0x58daec3116aae6D93017bAAea7749052E8a04fA7;
     address constant PERMIT2          = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
     address constant CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
@@ -20,13 +21,13 @@ contract NonceForkTest is Test {
     uint256 constant SLOT_GENESIS_COMPLETE   = 8;
     uint256 constant SLOT_CURRENT_DIFFICULTY = 11;
 
-    Nonce internal nonce;
+    Bowstring internal bow;
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("MAINNET_RPC"));
+        vm.createSelectFork(vm.envString("ROBINHOOD_RPC"));
 
         bytes memory initCode = abi.encodePacked(
-            type(Nonce).creationCode,
+            type(Bowstring).creationCode,
             abi.encode(POOL_MANAGER, POSITION_MANAGER, PERMIT2)
         );
         bytes32 initCodeHash = keccak256(initCode);
@@ -40,9 +41,9 @@ contract NonceForkTest is Test {
         require(ok, "create2 deploy failed");
         require(predicted.code.length > 0, "no code at predicted");
 
-        nonce = Nonce(payable(predicted));
+        bow = Bowstring(payable(predicted));
         require(uint160(predicted) & HOOK_MASK == HOOK_FLAGS, "bad hook bits");
-        require(nonce.controller() == address(this), "controller mismatch");
+        require(bow.controller() == address(this), "controller mismatch");
     }
 
     /// Verifies seedPool against real V4: we shortcut the 210-tx genesis fill
@@ -50,42 +51,42 @@ contract NonceForkTest is Test {
     /// LP minting, and Permit2 approvals.
     function test_seedPool_completes() public {
         uint256 eth = 10.5 ether;
-        vm.store(address(nonce), bytes32(SLOT_GENESIS_MINTED), bytes32(nonce.GENESIS_CAP()));
-        vm.store(address(nonce), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
-        vm.deal(address(nonce), eth);
+        vm.store(address(bow), bytes32(SLOT_GENESIS_MINTED), bytes32(bow.GENESIS_CAP()));
+        vm.store(address(bow), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
+        vm.deal(address(bow), eth);
 
-        nonce.seedPool();
+        bow.seedPool();
 
-        assertTrue(nonce.genesisComplete(), "genesis not complete");
-        assertGt(nonce.currentDifficulty(), 0, "difficulty not set");
+        assertTrue(bow.genesisComplete(), "genesis not complete");
+        assertGt(bow.currentDifficulty(), 0, "difficulty not set");
         // V4 liquidity math can leave a few wei of dust above MINING_SUPPLY;
         // tolerate up to 10k wei (extremely tight relative to 18.9M * 1e18).
         assertApproxEqAbs(
-            nonce.balanceOf(address(nonce)),
-            nonce.MINING_SUPPLY(),
+            bow.balanceOf(address(bow)),
+            bow.MINING_SUPPLY(),
             10_000,
             "mining supply not held by contract"
         );
-        assertGe(nonce.balanceOf(address(nonce)), nonce.MINING_SUPPLY(), "below mining supply");
+        assertGe(bow.balanceOf(address(bow)), bow.MINING_SUPPLY(), "below mining supply");
     }
 
     /// After seedPool, mine() should be callable. We slam difficulty to max
     /// so any nonce satisfies the proof, then verify a successful mint.
     function test_mine_afterSeed() public {
         uint256 eth = 10.5 ether;
-        vm.store(address(nonce), bytes32(SLOT_GENESIS_MINTED), bytes32(nonce.GENESIS_CAP()));
-        vm.store(address(nonce), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
-        vm.deal(address(nonce), eth);
-        nonce.seedPool();
+        vm.store(address(bow), bytes32(SLOT_GENESIS_MINTED), bytes32(bow.GENESIS_CAP()));
+        vm.store(address(bow), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
+        vm.deal(address(bow), eth);
+        bow.seedPool();
 
-        vm.store(address(nonce), bytes32(SLOT_CURRENT_DIFFICULTY), bytes32(type(uint256).max));
+        vm.store(address(bow), bytes32(SLOT_CURRENT_DIFFICULTY), bytes32(type(uint256).max));
 
         address miner = address(0xBEEF);
         vm.prank(miner);
-        nonce.mine(1);
+        bow.mine(1);
 
-        assertEq(nonce.balanceOf(miner), nonce.BASE_REWARD(), "miner did not receive reward");
-        assertEq(nonce.totalMints(), 1);
+        assertEq(bow.balanceOf(miner), bow.BASE_REWARD(), "miner did not receive reward");
+        assertEq(bow.totalMints(), 1);
     }
 
     /// partialSeed path: only controller can call, must wait 30 min, requires
@@ -94,15 +95,15 @@ contract NonceForkTest is Test {
         address buyer = address(0xABCD);
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
-        nonce.mintGenesis{value: 0.05 ether}(5);
+        bow.mintGenesis{value: 0.05 ether}(5);
 
-        assertEq(nonce.genesisMinted(), 5_000e18);
+        assertEq(bow.genesisMinted(), 5_000e18);
 
         vm.warp(block.timestamp + 30 minutes + 1);
-        nonce.partialSeed();
+        bow.partialSeed();
 
-        assertTrue(nonce.genesisComplete());
-        assertGt(nonce.currentDifficulty(), 0);
+        assertTrue(bow.genesisComplete());
+        assertGt(bow.currentDifficulty(), 0);
     }
 
     /// partialSeed must revert before the 30 minute delay.
@@ -110,10 +111,10 @@ contract NonceForkTest is Test {
         address buyer = address(0xABCD);
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
-        nonce.mintGenesis{value: 0.05 ether}(5);
+        bow.mintGenesis{value: 0.05 ether}(5);
 
-        vm.expectRevert(Nonce.TooSoon.selector);
-        nonce.partialSeed();
+        vm.expectRevert(Bowstring.TooSoon.selector);
+        bow.partialSeed();
     }
 
     /// partialSeed must revert if called by anyone other than the controller.
@@ -121,12 +122,12 @@ contract NonceForkTest is Test {
         address buyer = address(0xABCD);
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
-        nonce.mintGenesis{value: 0.05 ether}(5);
+        bow.mintGenesis{value: 0.05 ether}(5);
 
         vm.warp(block.timestamp + 30 minutes + 1);
         vm.prank(buyer);
-        vm.expectRevert(Nonce.NotController.selector);
-        nonce.partialSeed();
+        vm.expectRevert(Bowstring.NotController.selector);
+        bow.partialSeed();
     }
 
     function _mineSalt(bytes32 initCodeHash) internal pure returns (bytes32, address) {

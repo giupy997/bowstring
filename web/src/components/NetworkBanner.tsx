@@ -1,9 +1,9 @@
 "use client";
 
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { base } from "wagmi/chains";
+import { robinhoodChain } from "@/lib/wagmi";
 
-const EXPECTED_CHAIN = base;
+const EXPECTED_CHAIN = robinhoodChain;
 
 export function NetworkBanner() {
   const { isConnected } = useAccount();
@@ -23,7 +23,7 @@ export function NetworkBanner() {
       }}
     >
       <span>
-        Wrong network. NONCE lives on {EXPECTED_CHAIN.name} (chainId{" "}
+        Wrong network. BOW lives on {EXPECTED_CHAIN.name} (chainId{" "}
         {EXPECTED_CHAIN.id}). Your wallet is on chainId {chainId}.
       </span>
       <button

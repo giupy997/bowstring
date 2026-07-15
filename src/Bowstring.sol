@@ -2,19 +2,20 @@
 pragma solidity ^0.8.26;
 
 /*
-   ███╗   ██╗ ██████╗ ███╗   ██╗ ██████╗███████╗
-   ████╗  ██║██╔═══██╗████╗  ██║██╔════╝██╔════╝
-   ██╔██╗ ██║██║   ██║██╔██╗ ██║██║     █████╗
-   ██║╚██╗██║██║   ██║██║╚██╗██║██║     ██╔══╝
-   ██║ ╚████║╚██████╔╝██║ ╚████║╚██████╗███████╗
-   ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝╚══════╝
+    █████╗ ██████╗ ██████╗  ██████╗ ██╗    ██╗
+   ██╔══██╗██╔══██╗██╔══██╗██╔═══██╗██║    ██║
+   ███████║██████╔╝██████╔╝██║   ██║██║ █╗ ██║
+   ██╔══██║██╔══██╗██╔══██╗██║   ██║██║███╗██║
+   ██║  ██║██║  ██║██║  ██║╚██████╔╝╚███╔███╔╝
+   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝
 
    Mined ERC20 with a self-hook. The token contract IS
    its own Uniswap V4 hook and its own PoW miner. One
    address, one bytecode, one autonomous agent.
 
-   Site: https://nonceagent8004.com
-   X:    https://x.com/Nonceagent8004
+   Chain: Robinhood Chain (4663)
+   Site:  TBD (set before mainnet deploy)
+   X:     TBD (set before mainnet deploy)
 */
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -39,7 +40,7 @@ interface IAllowanceTransfer {
     function approve(address token, address spender, uint160 amount, uint48 expiration) external;
 }
 
-contract Nonce is ERC20, IHooks, ReentrancyGuard {
+contract Bowstring is ERC20, IHooks, ReentrancyGuard {
     using PoolIdLibrary for PoolKey;
     using CurrencyLibrary for Currency;
     using BalanceDeltaLibrary for BalanceDelta;
@@ -55,17 +56,22 @@ contract Nonce is ERC20, IHooks, ReentrancyGuard {
 
     uint256 public constant ERA_MINTS              = 100_000;
     uint256 public constant BASE_REWARD            = 100e18;
-    // Base produces a block every ~2 seconds. EPOCH_BLOCKS = 600 → ~20 min
-    // epoch (challenge refresh window). TARGET_BLOCKS_PER_MINT = 300 → the
-    // retargeting algorithm aims for 1 mint per ~600 s (10 min) on average,
-    // Bitcoin-grade slow. At BASE_REWARD = 100 NONCE that stretches the 18.9M
-    // mining supply over ~3.6 years. MAX_MINTS_PER_BLOCK = 1 caps the per-
-    // block burst to a single mint, so neither one block nor a flood of
-    // parallel miners can sweep emission the way the v1 (>>32 start, 10 per
-    // block) allowed — that misconfig let ~1% of supply mint in 10 minutes.
-    uint256 public constant EPOCH_BLOCKS           = 600;
+    // Robinhood Chain is an Arbitrum-stack L2 whose EVM `block.number` is the
+    // PARENT chain (Ethereum) height, advancing every ~12 s — NOT the ~0.1 s
+    // L2 block index (verified on-chain 2026-07-15 via eth_call state
+    // override: NUMBER == Ethereum mainnet height). All timing below is
+    // therefore denominated in ~12 s Ethereum blocks.
+    // EPOCH_BLOCKS = 100 → ~20 min epoch (challenge refresh window).
+    // TARGET_BLOCKS_PER_MINT = 50 → the retargeting algorithm aims for 1 mint
+    // per ~600 s (10 min) on average, Bitcoin-grade slow. At BASE_REWARD =
+    // 100 BOW that stretches the 18.9M mining supply over ~3.6 years.
+    // MAX_MINTS_PER_BLOCK = 1 caps the per-block burst to a single mint, so
+    // neither one block nor a flood of parallel miners can sweep emission the
+    // way v1 (>>32 start, 10 per block) allowed — that misconfig let ~1% of
+    // supply mint in 10 minutes.
+    uint256 public constant EPOCH_BLOCKS           = 100;
     uint256 public constant ADJUSTMENT_INTERVAL    = 2_016;
-    uint256 public constant TARGET_BLOCKS_PER_MINT = 300;
+    uint256 public constant TARGET_BLOCKS_PER_MINT = 50;
     uint256 public constant MAX_MINTS_PER_BLOCK    = 1;
 
     uint256 public constant SWAP_FEE_BPS = 100;
@@ -77,7 +83,7 @@ contract Nonce is ERC20, IHooks, ReentrancyGuard {
     uint256 public constant PARTIAL_SEED_DELAY = 30 minutes;
 
     /// @notice Window after deploy after which any genesis buyer can call
-    ///         `refundGenesis` to redeem their NONCE for the ETH they paid,
+    ///         `refundGenesis` to redeem their BOW for the ETH they paid,
     ///         provided the pool has not yet been seeded. Acts as a safety
     ///         net if `seedPool` / `partialSeed` cannot complete.
     uint256 public constant REFUND_GRACE = 3 days;
@@ -142,7 +148,7 @@ contract Nonce is ERC20, IHooks, ReentrancyGuard {
         IPoolManager poolManager_,
         address      positionManager_,
         address      permit2_
-    ) ERC20("Nonce", "NONCE") {
+    ) ERC20("Bowstring", "BOW") {
         require(address(poolManager_) != address(0));
         require(positionManager_      != address(0));
         require(permit2_              != address(0));
@@ -176,9 +182,9 @@ contract Nonce is ERC20, IHooks, ReentrancyGuard {
     }
 
     /// @notice Genesis buyer escape hatch. After `REFUND_GRACE` from deploy,
-    ///         if the pool has not been seeded yet, holders of genesis NONCE
+    ///         if the pool has not been seeded yet, holders of genesis BOW
     ///         can burn their balance back to the contract and recover the
-    ///         ETH at the original 0.01 ETH / 1,000 NONCE price. Useful when
+    ///         ETH at the original 0.01 ETH / 1,000 BOW price. Useful when
     ///         seeding is technically blocked and would otherwise lock
     ///         buyer ETH on the contract forever.
     function refundGenesis(uint256 tokenAmount) external nonReentrant {
