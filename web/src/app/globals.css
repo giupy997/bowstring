@@ -13,10 +13,11 @@
   --fg:              #ededed;
   --fg-muted:        #8a8a92;
   --fg-dim:          #5a5a62;
-  --accent:          #ffffff;
-  --accent-bright:   #ffffff;
-  --accent-glow:     rgba(255, 255, 255, 0.18);
-  --accent-dim:      #5a5a62;
+  /* Robinhood lime */
+  --accent:          #ccff00;
+  --accent-bright:   #e2ff5c;
+  --accent-glow:     rgba(204, 255, 0, 0.18);
+  --accent-dim:      #66751a;
   --danger:          #ef4444;
   --danger-glow:     rgba(239, 68, 68, 0.18);
   --ok:              #4ade80;

@@ -25,7 +25,7 @@ export function HeroCity() {
             <stop offset="100%" stopColor="#141418" />
           </linearGradient>
           <radialGradient id="hero-glow" cx="50%" cy="55%" r="55%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="#ccff00" stopOpacity="0.06" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
           <linearGradient id="hero-fade" x1="0" y1="0" x2="0" y2="1">
@@ -155,7 +155,7 @@ export function HeroCity() {
           <line x1="780" y1="220" x2="780" y2="580" />
           <polygon points="700,220 760,180 820,220" />
           <line x1="760" y1="180" x2="760" y2="130" />
-          <circle cx="760" cy="125" r="4" />
+          <circle cx="760" cy="125" r="4" stroke="#ccff00" fill="rgba(204, 255, 0, 0.25)" />
 
           {/* Right cluster */}
           <rect x="1260" y="270" width="90" height="310" />
@@ -211,12 +211,12 @@ export function HeroCity() {
           <line x1="1020" y1="180" x2="1020" y2="580" />
           <polygon points="900,180 970,130 1040,180" fill="rgba(255, 255, 255, 0.05)" />
           <line x1="970" y1="130" x2="970" y2="80" />
-          <circle cx="970" cy="74" r="6" fill="rgba(255, 255, 255, 0.5)" />
+          <circle cx="970" cy="74" r="6" stroke="#ccff00" fill="rgba(204, 255, 0, 0.55)" />
 
           {/* Right pavilion canopy */}
           <polygon points="1080,470 1240,420 1400,470 1400,500 1080,500" fill="rgba(255, 255, 255, 0.04)" />
           <line x1="1240" y1="420" x2="1240" y2="400" />
-          <circle cx="1240" cy="395" r="4" />
+          <circle cx="1240" cy="395" r="4" stroke="#ccff00" fill="rgba(204, 255, 0, 0.25)" />
           <line x1="1130" y1="500" x2="1130" y2="580" />
           <line x1="1240" y1="500" x2="1240" y2="580" />
           <line x1="1350" y1="500" x2="1350" y2="580" />
@@ -228,13 +228,13 @@ export function HeroCity() {
           <line x1="612" y1="500" x2="612" y2="580" />
           <line x1="600" y1="500" x2="612" y2="500" />
           <line x1="606" y1="500" x2="606" y2="470" />
-          <circle cx="606" cy="465" r="3" />
+          <circle cx="606" cy="465" r="3" stroke="#ccff00" fill="rgba(204, 255, 0, 0.25)" />
 
           <line x1="850" y1="490" x2="850" y2="580" />
           <line x1="860" y1="490" x2="860" y2="580" />
           <line x1="850" y1="490" x2="860" y2="490" />
           <line x1="855" y1="490" x2="855" y2="450" />
-          <circle cx="855" cy="445" r="3" />
+          <circle cx="855" cy="445" r="3" stroke="#ccff00" fill="rgba(204, 255, 0, 0.25)" />
 
           {/* Far right antenna stack */}
           <rect x="1480" y="380" width="50" height="200" fill="rgba(255, 255, 255, 0.03)" />
@@ -243,7 +243,7 @@ export function HeroCity() {
           <line x1="1480" y1="500" x2="1530" y2="500" />
           <line x1="1480" y1="540" x2="1530" y2="540" />
           <line x1="1505" y1="380" x2="1505" y2="320" />
-          <circle cx="1505" cy="316" r="4" />
+          <circle cx="1505" cy="316" r="4" stroke="#ccff00" fill="rgba(204, 255, 0, 0.25)" />
         </g>
 
         {/* Ground line */}
