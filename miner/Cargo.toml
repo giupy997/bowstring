@@ -1,0 +1,19 @@
+[package]
+name = "daemon-miner"
+version = "0.1.0"
+edition = "2021"
+description = "Browser-side keccak256 PoW miner for the DMN ERC-20 contract"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+tiny-keccak = { version = "2", features = ["keccak"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

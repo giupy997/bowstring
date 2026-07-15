@@ -1,0 +1,98 @@
+{
+  "$schema": "https://eips.ethereum.org/EIPS/eip-8004",
+  "name": "Nonce",
+  "description": "NONCE is a mined ERC-20 token whose contract is also its own Uniswap V4 swap hook. One bytecode, one address. The token, the hook, and the PoW miner are the same contract. No owner, no upgrade path, no admin keys. NONCE is autonomous: it accepts genesis purchases, seeds its own V4 liquidity pool when ready, locks the LP forever via hook reverts on liquidity modifications, takes a 1% swap fee on all trades, and pays mining rewards in PoW-bound nonces. Deployed on Base mainnet. Everything is verifiable on-chain.",
+  "version": "1.0.0",
+  "type": "token-agent",
+  "chain": {
+    "name": "base",
+    "chainId": 8453,
+    "namespace": "eip155"
+  },
+  "endpoints": {
+    "contract": "base://0xE7bADd12bdf070e925A55A98c981f3aBAB4f20cc",
+    "frontend": "https://nonceagent8004.com",
+    "whitepaper": "https://nonceagent8004.com/whitepaper.pdf",
+    "source": "https://github.com/wayne97dev/mineeth"
+  },
+  "capabilities": [
+    {
+      "id": "mintGenesis",
+      "description": "Buy raw NONCE at fixed 0.01 ETH per 1,000 NONCE during the genesis phase. Max 5 units per tx. Available until genesisComplete = true.",
+      "abi": "mintGenesis(uint256 units)",
+      "payable": true
+    },
+    {
+      "id": "refundGenesis",
+      "description": "Burn genesis-minted NONCE back to the contract in exchange for the original ETH price, after a 3-day grace period from deploy, if the pool has not been seeded.",
+      "abi": "refundGenesis(uint256 tokenAmount)"
+    },
+    {
+      "id": "mine",
+      "description": "Submit a PoW solution and receive the current era's reward. Challenge is bound to msg.sender and the current epoch (~20 minute window on Base, ~100 blocks). Solutions are unstealable from the mempool.",
+      "abi": "mine(uint256 nonce)"
+    },
+    {
+      "id": "swap",
+      "description": "Trade NONCE against ETH through the locked Uniswap V4 pool on Base. The 1% fee is taken on the ETH side and accrues to the contract balance, claimable by the controller via claimFees().",
+      "via": "uniswap-v4-pool",
+      "poolKey": {
+        "currency0": "0x0000000000000000000000000000000000000000",
+        "currency1": "0xE7bADd12bdf070e925A55A98c981f3aBAB4f20cc",
+        "fee": 0,
+        "tickSpacing": 200,
+        "hooks": "0xE7bADd12bdf070e925A55A98c981f3aBAB4f20cc"
+      }
+    },
+    {
+      "id": "claimFees",
+      "description": "Controller-only withdrawal of accumulated ETH swap fees from the contract balance.",
+      "abi": "claimFees()",
+      "access": "controller-only"
+    },
+    {
+      "id": "seedPool",
+      "description": "Initialize the V4 NONCE/ETH pool when genesis is fully sold out. Permissionless.",
+      "abi": "seedPool()"
+    },
+    {
+      "id": "partialSeed",
+      "description": "Controller-only seed of the pool with whatever genesis raised so far, callable after 30 minutes from deploy. Unsold genesis NONCE is never minted.",
+      "abi": "partialSeed()",
+      "access": "controller-only"
+    }
+  ],
+  "validation": {
+    "verified_source": "basescan",
+    "license": "MIT",
+    "immutable": true,
+    "no_proxy": true,
+    "no_owner_admin_keys": true,
+    "audits": []
+  },
+  "tokenomics": {
+    "totalSupply": "21000000000000000000000000",
+    "miningSupply": "18900000000000000000000000",
+    "genesisCap": "1050000000000000000000000",
+    "lpAllocation": "1050000000000000000000000",
+    "baseReward": "100000000000000000000",
+    "halvingEvery": 100000,
+    "retargetEvery": 2016,
+    "epochBlocks": 100,
+    "maxMintsPerBlock": 10
+  },
+  "extensions": {
+    "minerAgent": {
+      "description": "Soulbound ERC-721 collection where NONCE participants can claim a per-address NFT identity (one per wallet). 10 artworks total: 5 tiers x 2 variants. Tier scales dynamically with live NONCE holdings - Initiate (< 1,000), Bronze (1k-9.9k), Silver (10k-99.9k), Gold (100k-999.9k), Platinum (>= 1M). Variant is fixed at mint, hashed deterministically from the tokenId. Each artwork represents a transaction lifecycle state. Minimum 1 NONCE held to claim.",
+      "address": "0x45F45e470E974E720614d31815c42dbA18F8b4cF"
+    },
+    "agentRegistration": {
+      "chain": "base",
+      "chainId": 8453,
+      "registryAddress": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+      "agentId": 51672,
+      "owner": "0x51fbf2b3eFf8D56730551C750426FcaBf5A4aE6a",
+      "directory": "https://8004scan.io/agents/base/51672"
+    }
+  }
+}

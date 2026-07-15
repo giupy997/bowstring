@@ -1,0 +1,447 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:              #08080a;
+  --bg-elevated:     #0e0e12;
+  --bg-panel:        #131319;
+  --bg-panel-hover:  #1a1a22;
+  --border:          #1f1f27;
+  --border-strong:   #2c2c36;
+  --border-bright:   #3a3a45;
+  --fg:              #ededed;
+  --fg-muted:        #8a8a92;
+  --fg-dim:          #5a5a62;
+  --accent:          #ffffff;
+  --accent-bright:   #ffffff;
+  --accent-glow:     rgba(255, 255, 255, 0.18);
+  --accent-dim:      #5a5a62;
+  --danger:          #ef4444;
+  --danger-glow:     rgba(239, 68, 68, 0.18);
+  --ok:              #4ade80;
+  --ok-glow:         rgba(74, 222, 128, 0.22);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Subtle vignette + grain for depth. */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at top, rgba(244, 196, 48, 0.04), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.015), transparent 70%);
+  z-index: -1;
+}
+
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thin scrollbar that matches the dark panel theme. Used on internal
+   scrolling regions (e.g. RecentMints activity feed) so a long list
+   scrolls inside a fixed-height container instead of growing the page. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--border-bright);
+}
+
+@layer components {
+  .panel {
+    @apply rounded-md border;
+    background: var(--bg-panel);
+    border-color: var(--border);
+  }
+
+  .panel-label {
+    @apply text-xs uppercase tracking-widest font-mono;
+    color: var(--fg-muted);
+  }
+
+  .stat-value {
+    @apply font-mono text-2xl;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-sm font-mono text-sm uppercase tracking-wider transition;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-panel);
+    color: var(--fg);
+  }
+
+  .btn:hover { background: var(--bg-panel-hover); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0a;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover {
+    background: var(--accent-bright);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 24px var(--accent-glow);
+  }
+  .btn-primary:disabled {
+    background: var(--accent-dim);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 rounded-sm font-mono text-sm bg-transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+}
+
+/* ───────── Connect wallet button ───────── */
+
+.connect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel);
+  color: var(--fg);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease,
+              background 0.18s ease;
+}
+
+.connect-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 0 18px var(--accent-glow);
+}
+
+.connect-btn-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.connect-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger-glow), 0 0 18px var(--danger-glow);
+}
+
+.connect-group {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+
+.chain-pill, .account-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.chain-pill:hover, .account-pill:hover {
+  background: var(--bg-panel-hover);
+  color: var(--fg);
+}
+
+.account-pill { font-variant-numeric: tabular-nums; }
+
+.chain-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.connect-divider {
+  width: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-idle   { background: var(--fg-muted); }
+.dot-ok     { background: var(--ok);     box-shadow: 0 0 8px var(--ok-glow); }
+.dot-danger { background: var(--danger); box-shadow: 0 0 8px var(--danger-glow); }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 6px var(--ok-glow); }
+  50%      { box-shadow: 0 0 14px var(--ok-glow); }
+}
+.dot-ok { animation: pulse-glow 2.4s ease-in-out infinite; }
+
+/* ───────── Header ───────── */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(8, 8, 10, 0.72);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--fg);
+  transition: opacity 0.15s ease;
+}
+.app-logo:hover { opacity: 0.85; }
+.app-logo-mark {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+.app-logo-text {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.nav-link {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  transition: color 0.15s ease;
+  position: relative;
+}
+.nav-link:hover { color: var(--fg); }
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -6px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+.nav-link:hover::after { transform: scaleX(1); }
+
+/* ───────── Whitepaper reading page ───────── */
+
+.wp-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 28px 120px;
+}
+
+.wp-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wp-back, .wp-pdf {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  transition: color 0.15s ease;
+}
+
+.wp-back:hover { color: var(--fg); }
+.wp-pdf:hover  { color: var(--accent); }
+
+.wp-content {
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.wp-content h1 {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin: 0 0 6px;
+  color: var(--fg);
+}
+
+.wp-content h1 + p {
+  font-size: 16px;
+  font-style: italic;
+  color: var(--fg-muted);
+  margin: 0 0 4px;
+}
+
+.wp-content h1 + p + p {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 48px;
+  font-style: normal;
+}
+
+.wp-content h2 {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 56px;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+}
+
+.wp-content h3 {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 28px;
+  margin-bottom: 10px;
+  color: var(--fg);
+}
+
+.wp-content p {
+  margin: 0 0 16px;
+  color: #c8c8cc;
+}
+
+.wp-content strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.wp-content a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+.wp-content a:hover { border-bottom-color: var(--accent); }
+
+.wp-content code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+
+.wp-content pre {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 20px 0;
+  line-height: 1.55;
+}
+.wp-content pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--fg);
+  font-size: 13px;
+}
+
+.wp-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 24px 0;
+  font-size: 14px;
+}
+.wp-content th, .wp-content td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.wp-content th {
+  border-bottom: 2px solid var(--border-bright);
+  color: var(--fg);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.wp-content td { color: #c8c8cc; }
+
+.wp-content ul, .wp-content ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  color: #c8c8cc;
+}
+.wp-content li { margin: 4px 0; }
+
+.wp-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 32px 0;
+}
+
+.wp-content blockquote {
+  border-left: 3px solid var(--border-bright);
+  margin: 16px 0;
+  padding: 4px 16px;
+  color: var(--fg-muted);
+  font-style: italic;
+}

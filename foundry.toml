@@ -1,0 +1,25 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.26"
+optimizer = true
+optimizer_runs = 1_000_000
+evm_version = "cancun"
+via_ir = true
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@uniswap/v4-core/=lib/v4-core/",
+    "forge-std/=lib/forge-std/src/",
+]
+
+[rpc_endpoints]
+base         = "${BASE_RPC}"
+base_sepolia = "${BASE_SEPOLIA_RPC}"
+
+[etherscan]
+# Etherscan v2 unified API: one endpoint, all chains, identified by chainid.
+# Basescan is part of the Etherscan family and accepts the same API key.
+# (The basescan.org/v2 URL pattern doesn't exist — using it returns 404.)
+base         = { key = "${BASESCAN_KEY}", url = "https://api.etherscan.io/v2/api?chainid=8453" }
+base_sepolia = { key = "${BASESCAN_KEY}", url = "https://api.etherscan.io/v2/api?chainid=84532" }

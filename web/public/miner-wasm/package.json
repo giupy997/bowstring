@@ -1,0 +1,17 @@
+{
+  "name": "nonce-miner",
+  "type": "module",
+  "description": "Browser-side keccak256 PoW miner for the NONCE ERC-20 contract",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "miner_bg.wasm",
+    "miner.js",
+    "miner.d.ts"
+  ],
+  "main": "miner.js",
+  "types": "miner.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
