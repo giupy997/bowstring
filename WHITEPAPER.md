@@ -1,4 +1,4 @@
-# Bowstring
+# Gold
 
 A Mined ERC-20 with a Self-Hook
 
@@ -6,9 +6,9 @@ May 2026
 
 ## Abstract
 
-BOW is an ERC-20 token released entirely through proof of work, with no team allocation, no insider presale, no admin keys, and no upgrade path. The token contract is also its own Uniswap V4 swap hook and its own miner. One bytecode, one address. Once deployed, the rules cannot change.
+GOLD is an ERC-20 token released entirely through proof of work, with no team allocation, no insider presale, no admin keys, and no upgrade path. The token contract is also its own Uniswap V4 swap hook and its own miner. One bytecode, one address. Once deployed, the rules cannot change.
 
-The supply is 21 million tokens, identical to Bitcoin in scale. Five percent funds an open genesis sale, five percent seeds a Uniswap V4 BOW/ETH pool whose liquidity is locked forever by the same hook that collects a 1% swap fee. The remaining ninety percent is mined: anyone with a browser can solve a keccak256 puzzle bound to their wallet address and call `mine()` to receive the current era's reward.
+The supply is 21 million tokens, identical to Bitcoin in scale. Five percent funds an open genesis sale, five percent seeds a Uniswap V4 GOLD/ETH pool whose liquidity is locked forever by the same hook that collects a 1% swap fee. The remaining ninety percent is mined: anyone with a browser can solve a keccak256 puzzle bound to their wallet address and call `mine()` to receive the current era's reward.
 
 This document describes why the design exists, how each piece works, and what limits remain.
 
@@ -18,7 +18,7 @@ Most ERC-20 launches today are pre-mints. A team deploys a contract, mints the s
 
 A different model has existed since 0xBitcoin in 2018: the contract refuses to mint to anyone. New tokens emerge only when someone solves a hash puzzle on chain. The supply schedule is mechanical, the distribution is permissionless, and the team has no special power because there is no team-controlled state to abuse.
 
-BOW takes that model and adds two pieces that 0xBitcoin and its imitators could not have. The first is address-bound proofs of work: a mined nonce only works for the wallet that found it, so solutions cannot be copied from the mempool. The second is a self-hook, made possible by Uniswap V4 hooks shipping to mainnet in January 2025. The token contract is also the swap hook for its own liquidity pool, which lets the pool reject every liquidity-modification call and effectively lock the LP without any external service.
+GOLD takes that model and adds two pieces that 0xBitcoin and its imitators could not have. The first is address-bound proofs of work: a mined nonce only works for the wallet that found it, so solutions cannot be copied from the mempool. The second is a self-hook, made possible by Uniswap V4 hooks shipping to mainnet in January 2025. The token contract is also the swap hook for its own liquidity pool, which lets the pool reject every liquidity-modification call and effectively lock the LP without any external service.
 
 Address-binding kills front-running at the cryptographic level. The self-hook removes the need to trust a third-party lock contract or a multisig timeout. Together they remove the two most common forms of soft-rug that survive even in supposedly fair launches.
 
@@ -28,11 +28,11 @@ The contract moves through four phases in its lifetime.
 
 **Phase 0, Empty.** The contract is deployed and holds nothing. Constructor parameters set the addresses of the Uniswap V4 PoolManager, PositionManager, and Permit2 for the target chain. The deployer becomes the `controller`, the only address with permission to claim accumulated swap fees later. No other state is mutable from outside.
 
-**Phase 1, Genesis.** Anyone can call `mintGenesis(units)` with `units * 0.01 ETH`. Each unit yields 1,000 BOW, capped at five units per transaction. The transaction cap exists so a single mempool slot cannot sweep the entire allocation in one go. Excess ETH is refunded in the same call. Three days after deploy, if the pool has not been seeded, `refundGenesis` opens and lets any holder of genesis BOW redeem it back for ETH at the original price (see Refund escape hatch).
+**Phase 1, Genesis.** Anyone can call `mintGenesis(units)` with `units * 0.01 ETH`. Each unit yields 1,000 GOLD, capped at five units per transaction. The transaction cap exists so a single mempool slot cannot sweep the entire allocation in one go. Excess ETH is refunded in the same call. Three days after deploy, if the pool has not been seeded, `refundGenesis` opens and lets any holder of genesis GOLD redeem it back for ETH at the original price (see Refund escape hatch).
 
-**Phase 2, Seeding.** Once the genesis cap of 1,050,000 BOW is sold out, anyone can call `seedPool()`. The function mints the remaining 19,950,000 BOW to the contract itself, creates the V4 BOW/ETH pool with the contract as its hook, deposits all genesis ETH plus 1,050,000 BOW as liquidity, and sets the initial mining difficulty. The LP position NFT is minted to the controller. A fallback `partialSeed()` exists for the case where genesis stalls below the cap; it can be called by the controller no earlier than thirty minutes after deploy.
+**Phase 2, Seeding.** Once the genesis cap of 1,050,000 GOLD is sold out, anyone can call `seedPool()`. The function mints the remaining 19,950,000 GOLD to the contract itself, creates the V4 GOLD/ETH pool with the contract as its hook, deposits all genesis ETH plus 1,050,000 GOLD as liquidity, and sets the initial mining difficulty. The LP position NFT is minted to the controller. A fallback `partialSeed()` exists for the case where genesis stalls below the cap; it can be called by the controller no earlier than thirty minutes after deploy.
 
-**Phase 3, Mining.** The remaining 18,900,000 BOW is released through proof of work. Each successful `mine(nonce)` call pays the current era's reward, starting at 100 BOW and halving every 100,000 mints. Mining ends when the cap is reached.
+**Phase 3, Mining.** The remaining 18,900,000 GOLD is released through proof of work. Each successful `mine(nonce)` call pays the current era's reward, starting at 100 GOLD and halving every 100,000 mints. Mining ends when the cap is reached.
 
 Phase transitions are gated by storage flags. No admin function exists to skip a phase, rewind state, or change parameters.
 
@@ -69,7 +69,7 @@ Starting difficulty after seeding is `type(uint256).max >> 32`, which means roug
 
 A Uniswap V4 hook is a contract whose address contains specific bits in its lower fourteen bits. Those bits encode which lifecycle functions the hook actually implements. The same contract that implements `transfer` and `balanceOf` for the ERC-20 also implements `beforeSwap`, `afterSwap`, and `beforeInitialize` for the pool. To make this work, the contract is deployed via CREATE2 with a salt chosen so the resulting address has the correct permission bits. Salt mining happens offline before deployment, typically takes a few seconds, and is fully reproducible.
 
-After seeding, the pool exists at coordinates: currency0 is native ETH, currency1 is BOW, tickSpacing is 200, hooks is the BOW contract itself. The hook intercepts swaps and routes 1% of the ETH side of every swap to the contract's own balance.
+After seeding, the pool exists at coordinates: currency0 is native ETH, currency1 is GOLD, tickSpacing is 200, hooks is the GOLD contract itself. The hook intercepts swaps and routes 1% of the ETH side of every swap to the contract's own balance.
 
 The hook also denies every liquidity modification. `beforeAddLiquidity` and `beforeRemoveLiquidity` revert unconditionally. The pool starts with the seed liquidity and stays at that exact shape forever. Nobody, including the deployer who holds the LP NFT, can move the liquidity out or add more on top of it.
 
@@ -81,14 +81,14 @@ The launch model that results does not depend on a third-party lock service, a m
 
 | Allocation | Amount | Share |
 |---|---|---|
-| Genesis sale | 1,050,000 BOW | 5% |
-| Locked LP | 1,050,000 BOW | 5% |
-| Mining | 18,900,000 BOW | 90% |
-| **Total** | **21,000,000 BOW** | **100%** |
+| Genesis sale | 1,050,000 GOLD | 5% |
+| Locked LP | 1,050,000 GOLD | 5% |
+| Mining | 18,900,000 GOLD | 90% |
+| **Total** | **21,000,000 GOLD** | **100%** |
 
-Genesis is priced at 0.01 ETH per 1,000 BOW, fixed. A fully subscribed genesis raises 10.5 ETH, every unit of which goes directly into the V4 pool as the ETH side of seed liquidity. Nothing reaches the deployer at genesis.
+Genesis is priced at 0.01 ETH per 1,000 GOLD, fixed. A fully subscribed genesis raises 10.5 ETH, every unit of which goes directly into the V4 pool as the ETH side of seed liquidity. Nothing reaches the deployer at genesis.
 
-The mining schedule halves every 100,000 successful mints. Era zero pays 100 BOW per mint, era one pays 50, era two pays 25, and so on. In practice the schedule terminates at era four because the cumulative reward up to that point reaches the 18.9M mining cap.
+The mining schedule halves every 100,000 successful mints. Era zero pays 100 GOLD per mint, era one pays 50, era two pays 25, and so on. In practice the schedule terminates at era four because the cumulative reward up to that point reaches the 18.9M mining cap.
 
 Target throughput is one mint per ten minutes on average — Bitcoin-grade slow. At that rate a difficulty retarget lands every 2,016 mints, or about two weeks of real time, assuming the network mines at exactly the target rate. The retarget mechanism corrects for deviations within a factor of four per period.
 
@@ -101,7 +101,7 @@ seedPool()    — permissionless, requires genesisMinted == GENESIS_CAP
 partialSeed() — controller only, requires block.timestamp >= deployedAt + 30 minutes
 ```
 
-Both functions call the same internal logic. The only difference is whether the genesis has reached the full 1,050,000 BOW cap or not. `seedPool` is the happy path where the community fills the cap on its own; `partialSeed` is the controller's escape hatch when genesis stalls.
+Both functions call the same internal logic. The only difference is whether the genesis has reached the full 1,050,000 GOLD cap or not. `seedPool` is the happy path where the community fills the cap on its own; `partialSeed` is the controller's escape hatch when genesis stalls.
 
 The interesting property of `partialSeed` is what it does with the unsold genesis allocation. The body uses `genesisMinted`, not `GENESIS_CAP`:
 
@@ -114,11 +114,11 @@ function _seedBody() internal {
 }
 ```
 
-The unsold genesis BOW is never minted. Not burned, not held by the controller, not stuck in storage. It simply does not exist. If genesis stops at 300,000 BOW sold, the contract's total supply becomes 300,000 plus 18,900,000 = 19,200,000 BOW, and the pool receives 300,000 BOW paired against whatever ETH was raised at that point.
+The unsold genesis GOLD is never minted. Not burned, not held by the controller, not stuck in storage. It simply does not exist. If genesis stops at 300,000 GOLD sold, the contract's total supply becomes 300,000 plus 18,900,000 = 19,200,000 GOLD, and the pool receives 300,000 GOLD paired against whatever ETH was raised at that point.
 
 This is clean from a contract-design perspective. No surplus tokens to manage, no governance over unsold inventory, no airdrops to plan. The 30-minute delay on `partialSeed` is the only anti-grief constraint: it prevents the controller from instantly seeding an empty pool, which would yield zero liquidity and break the AMM. The `genesisMinted > 0` check is the same idea: at least one external buyer must have participated.
 
-The downside of early seeding is economic, not technical. The mining supply is fixed at 18,900,000 BOW regardless of how much genesis sold. The LP side scales linearly with genesis sales. Seeding at 30% means the pool is roughly one third the size it would be at full sell-out, and miners produce new supply at the same rate either way. A thin pool combined with active mining means each mined block pushes the price down harder than it would against a deep pool.
+The downside of early seeding is economic, not technical. The mining supply is fixed at 18,900,000 GOLD regardless of how much genesis sold. The LP side scales linearly with genesis sales. Seeding at 30% means the pool is roughly one third the size it would be at full sell-out, and miners produce new supply at the same rate either way. A thin pool combined with active mining means each mined block pushes the price down harder than it would against a deep pool.
 
 Three strategies are reasonable.
 
@@ -156,13 +156,13 @@ function refundGenesis(uint256 tokenAmount) external nonReentrant {
 }
 ```
 
-`REFUND_GRACE` is fixed at 3 days. Any holder of genesis-minted BOW can call `refundGenesis(amount)` once the grace has passed, provided the pool has not yet been seeded. The function burns the caller's BOW and returns ETH at the original 0.01 ETH per 1,000 BOW rate. Multiple partial refunds are permitted.
+`REFUND_GRACE` is fixed at 3 days. Any holder of genesis-minted GOLD can call `refundGenesis(amount)` once the grace has passed, provided the pool has not yet been seeded. The function burns the caller's GOLD and returns ETH at the original 0.01 ETH per 1,000 GOLD rate. Multiple partial refunds are permitted.
 
 Three properties keep the function safe.
 
 The function is gated on `!genesisComplete`. After `seedPool` or `partialSeed` runs, the ETH is no longer on the contract; it is liquidity in the V4 pool, locked by the hook, unreachable. Refunds become impossible from that moment forward, by design. Holders who want out post-seed sell into the pool at the AMM price.
 
-The unit-multiple check forces `tokenAmount` to be a multiple of 1,000 BOW. This avoids rounding issues and matches the genesis purchase granularity exactly. Half-unit refunds would create dust counters that drift apart from `genesisEthRaised`.
+The unit-multiple check forces `tokenAmount` to be a multiple of 1,000 GOLD. This avoids rounding issues and matches the genesis purchase granularity exactly. Half-unit refunds would create dust counters that drift apart from `genesisEthRaised`.
 
 The `_burn` happens before the ETH transfer. Reentrancy through the recipient cannot replay a refund the caller has not first burned. Combined with the `nonReentrant` modifier, this leaves no path for double-spending the position.
 
@@ -182,40 +182,40 @@ First, check that the contract address has the correct V4 hook permission bits. 
 
 Second, read the constants directly from chain. Call `TOTAL_SUPPLY`, `MINING_SUPPLY`, `GENESIS_CAP`, `BASE_REWARD`, `ERA_MINTS`, `EPOCH_BLOCKS`, `ADJUSTMENT_INTERVAL`, and `MAX_MINTS_PER_BLOCK`. Each must match the values stated here.
 
-Third, try to remove liquidity from the BOW/ETH pool through any V4 router or position manager. The call reverts with `InvalidAction()`. The revert is unconditional and originates from the hook itself, not from any access-controlled flag.
+Third, try to remove liquidity from the GOLD/ETH pool through any V4 router or position manager. The call reverts with `InvalidAction()`. The revert is unconditional and originates from the hook itself, not from any access-controlled flag.
 
 ## Agent alignment
 
-The BOW contract maps cleanly onto the ERC-8004 agent registry model. Three properties of a "trustless agent" are spelled out in the EIP: a stable identity, observable reputation, and verifiable behavior. BOW satisfies all three without any wrapper layer.
+The GOLD contract maps cleanly onto the ERC-8004 agent registry model. Three properties of a "trustless agent" are spelled out in the EIP: a stable identity, observable reputation, and verifiable behavior. GOLD satisfies all three without any wrapper layer.
 
 The identity is the contract's own address. It is fixed at deploy time, derived deterministically from the CREATE2 init-code hash, and cannot be migrated. There is no upgradable proxy in front, no admin key to rotate, no governance to change ownership. The address is the agent.
 
-The reputation is the contract's on-chain state. `totalMints`, `totalMiningMinted`, accumulated swap fees, the V4 LP NFT held by the controller, the genesis ETH raised: every metric that matters is queryable directly from chain by any indexer. There is no reputation oracle to trust because every claim BOW makes about itself can be checked against its own storage.
+The reputation is the contract's on-chain state. `totalMints`, `totalMiningMinted`, accumulated swap fees, the V4 LP NFT held by the controller, the genesis ETH raised: every metric that matters is queryable directly from chain by any indexer. There is no reputation oracle to trust because every claim GOLD makes about itself can be checked against its own storage.
 
 The behavior is verified by the source. The bytecode is the source, the source is the spec, and both are immutable. The hook reverts on liquidity removal. The mint function refuses to pay more than `MINING_SUPPLY`. The `claimFees` function only moves ETH the contract has accumulated, never tokens it has minted. Each of these guarantees is unconditional and originates from the hook itself.
 
-BOW publishes a hosted JSON manifest (`/agent.json`) that lists the contract's capabilities, endpoints, and validation hooks, following the ERC-8004 agent model. Registration on an ERC-8004 Identity Registry reachable from Robinhood Chain will follow once a canonical registry deployment exists there; indexers like 8004scan then resolve the agent automatically from the `Transfer` event of the registry NFT.
+GOLD publishes a hosted JSON manifest (`/agent.json`) that lists the contract's capabilities, endpoints, and validation hooks, following the ERC-8004 agent model. Registration on an ERC-8004 Identity Registry reachable from Robinhood Chain will follow once a canonical registry deployment exists there; indexers like 8004scan then resolve the agent automatically from the `Transfer` event of the registry NFT.
 
 ## Miner Agent NFTs
 
-A separate ERC-721 collection, `MinerAgent`, deployed on Robinhood Chain alongside the token, gives each BOW participant an on-chain identity in the ERC-8004 sense without modifying the core token contract. The mapping is one NFT per address, claimable once, soulbound after mint. Any wallet holding at least 1 BOW may call `claim()` to mint its own agent NFT. Genesis buyers, miners, and aftermarket buyers all qualify equally; the only requirement is the live balance check at claim time.
+A separate ERC-721 collection, `MinerAgent`, deployed on Robinhood Chain alongside the token, gives each GOLD participant an on-chain identity in the ERC-8004 sense without modifying the core token contract. The mapping is one NFT per address, claimable once, soulbound after mint. Any wallet holding at least 1 GOLD may call `claim()` to mint its own agent NFT. Genesis buyers, miners, and aftermarket buyers all qualify equally; the only requirement is the live balance check at claim time.
 
-The artwork is a curated set of ten 1-of-1 pieces, organised as five tiers times two variants, each piece named after a state in a transaction lifecycle: Genesis Signal, Pending State, Ordered Execution, Verified State, Replay Barrier, Finalized State, Archived State, Echo State, Transition State, and Confirmation State. The tier scales dynamically with the holder's live BOW balance — Initiate (under 1,000 BOW), Bronze (1k–10k), Silver (10k–100k), Gold (100k–1M), Platinum (1M and above) — so a wallet that grows from Silver to Gold visibly upgrades its badge without any on-chain action. The variant is fixed at mint time, hashed deterministically from the tokenId via `keccak256(abi.encode(tokenId, "bowstring-variant")) % 2`, so two holders at the same tier may still display different artwork.
+The artwork is a curated set of ten 1-of-1 pieces, organised as five tiers times two variants, each piece named after a state in a transaction lifecycle: Genesis Signal, Pending State, Ordered Execution, Verified State, Replay Barrier, Finalized State, Archived State, Echo State, Transition State, and Confirmation State. The tier scales dynamically with the holder's live GOLD balance — Initiate (under 1,000 GOLD), Bronze (1k–10k), Silver (10k–100k), Gold (100k–1M), Platinum (1M and above) — so a wallet that grows from Silver to Gold visibly upgrades its badge without any on-chain action. The variant is fixed at mint time, hashed deterministically from the tokenId via `keccak256(abi.encode(tokenId, "gold-variant")) % 2`, so two holders at the same tier may still display different artwork.
 
-The PNGs are pinned to IPFS as a single CIDv1 dag-pb folder (`bafybeiauhz7wvnvbw3iqvlpygpinhqfuv4ldh6mv3d3zb7r6kfcztcn6lq`), content-addressed and provably immutable: even if the original pin disappears tomorrow, anyone re-pinning the same files reproduces the same CID and the URLs keep resolving. Metadata is served from `/api/agent/<tokenId>.json` on the project website; the endpoint reads `ownerOf(tokenId)` on `MinerAgent` and `balanceOf(owner)` on `Bowstring` live on every fetch, then assembles OpenSea-compatible JSON that points at the matching IPFS image. Each token's metadata also carries a back-reference slot for the parent ERC-8004 agent, filled in once registration on a Robinhood Chain-reachable registry completes, so an indexer that picks up an NFT can resolve the registry entry without a separate hint.
+The PNGs are pinned to IPFS as a single CIDv1 dag-pb folder (`bafybeiauhz7wvnvbw3iqvlpygpinhqfuv4ldh6mv3d3zb7r6kfcztcn6lq`), content-addressed and provably immutable: even if the original pin disappears tomorrow, anyone re-pinning the same files reproduces the same CID and the URLs keep resolving. Metadata is served from `/api/agent/<tokenId>.json` on the project website; the endpoint reads `ownerOf(tokenId)` on `MinerAgent` and `balanceOf(owner)` on `Gold` live on every fetch, then assembles OpenSea-compatible JSON that points at the matching IPFS image. Each token's metadata also carries a back-reference slot for the parent ERC-8004 agent, filled in once registration on a Robinhood Chain-reachable registry completes, so an indexer that picks up an NFT can resolve the registry entry without a separate hint.
 
 Transfers between EOAs revert with `Soulbound()`. Burning and minting are both allowed at the protocol level so that future upgrades to the soulbound semantics are possible without a redeploy, but no burn function is exposed to users today. The NFT is meant to remain attached to the wallet that earned it.
 
-The collection is intentionally lightweight. It does not give holders new rights over BOW. It does not change the supply distribution. It does not introduce new tradeable surface area. Its job is to make ownership of BOW legible to agent-aware tooling and to give participants a single, queryable identity that ERC-8004 indexers can resolve back to the parent BOW agent on the registry.
+The collection is intentionally lightweight. It does not give holders new rights over GOLD. It does not change the supply distribution. It does not introduce new tradeable surface area. Its job is to make ownership of GOLD legible to agent-aware tooling and to give participants a single, queryable identity that ERC-8004 indexers can resolve back to the parent GOLD agent on the registry.
 
 ## Limits and caveats
 
 The contract has no upgrade path. If a critical bug is discovered post-launch, there is no fix. The mitigation is the same as Bitcoin's: keep the surface small, audit before deploy, deploy code that has been forked from a contract running in production elsewhere.
 
-Mining costs gas. On Robinhood Chain, where BOW is deployed, a `mine()` transaction costs cents — sub-cent at typical base fees, low single-digit cents under congestion. The reward in dollar terms must still exceed this for mining to remain economically rational. As the price of BOW in the AMM falls below the mining cost, hashrate drops, the network produces fewer mints than the ten-minute target, and difficulty retargets downward. Equilibrium price is whatever clears that condition.
+Mining costs gas. On Robinhood Chain, where GOLD is deployed, a `mine()` transaction costs cents — sub-cent at typical base fees, low single-digit cents under congestion. The reward in dollar terms must still exceed this for mining to remain economically rational. As the price of GOLD in the AMM falls below the mining cost, hashrate drops, the network produces fewer mints than the ten-minute target, and difficulty retargets downward. Equilibrium price is whatever clears that condition.
 
 Address-binding makes solutions unstealable from the mempool but does nothing against a miner who controls multiple wallets. A miner with surplus hashrate can mine to any address they own. This is the same property Bitcoin has and is not considered a problem; the cost of computing power is what discourages over-extraction.
 
 The 1% swap fee paid to the controller represents an ongoing extraction from swap volume. It is not a token tax. The swap itself executes at the pool's posted price, and the fee is taken from the ETH side via the hook. Buyers and sellers pay equally. The fee can never be raised, lowered, or rerouted because the contract is immutable.
 
-BOW is not a promise. There is no team behind it in the conventional sense. There is no roadmap to deliver against. The contract does what its bytecode does, and nothing more.
+GOLD is not a promise. There is no team behind it in the conventional sense. There is no roadmap to deliver against. The contract does what its bytecode does, and nothing more.

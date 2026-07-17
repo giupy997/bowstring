@@ -1,9 +1,9 @@
 // OpenSea collection-level metadata endpoint, exposed at
 //
-//   https://bowstring-tbd.com/api/collection
+//   https://gold-tbd.com/api/collection
 //
 // After the production MinerAgent deploys we call
-//   MinerAgent.setExternalContractURI("https://bowstring-tbd.com/api/collection")
+//   MinerAgent.setExternalContractURI("https://gold-tbd.com/api/collection")
 // so OpenSea / collection aggregators pull the rich card from here instead
 // of falling back to the on-chain SVG default in MinerAgent._defaultContractURI.
 //
@@ -22,13 +22,13 @@ export async function GET() {
   // OpenSea collection metadata standard:
   // https://docs.opensea.io/docs/contract-level-metadata
   const metadata = {
-    name: "Bowstring Miner Agent",
+    name: "Gold Miner Agent",
     description:
       "Soulbound ERC-8004 identity NFTs attached to the autonomous " +
-      "**Bowstring** agent on Robinhood Chain (4663). One per address, " +
-      "claimable once a wallet holds at least 1 BOW. The tier badge — " +
+      "**Gold** agent on Robinhood Chain (4663). One per address, " +
+      "claimable once a wallet holds at least 1 GOLD. The tier badge — " +
       "Initiate, Bronze, Silver, Gold, Platinum — is computed live from " +
-      "the holder's current BOW balance, so the NFT visibly upgrades " +
+      "the holder's current GOLD balance, so the NFT visibly upgrades " +
       "as you accumulate. 10 unique artworks (5 tiers × 2 variants), " +
       "each representing a transaction lifecycle state. " +
       "Tokens are non-transferable: a transfer attempt reverts at the " +
@@ -38,8 +38,8 @@ export async function GET() {
     banner_image: `${IPFS_ROOT}/collection.png`,
     // Featured = Platinum tier's Confirmation State, the most ornate
     // artwork of the 10, used as collection highlight.
-    featured_image: `${IPFS_ROOT}/BOW_10.png`,
-    external_link: "https://bowstring-tbd.com",
+    featured_image: `${IPFS_ROOT}/GOLD_10.png`,
+    external_link: "https://gold-tbd.com",
     collaborators: [],
     // Royalty config — soulbound collection, no secondary trade signal.
     // Some marketplaces still expect these fields to be present.

@@ -2,12 +2,12 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {Bowstring} from "../src/Bowstring.sol";
+import {Gold} from "../src/Gold.sol";
 
 /// @notice End-to-end fork tests against Robinhood Chain V4. Requires
 ///         ROBINHOOD_RPC env (https://rpc.mainnet.chain.robinhood.com).
-///         Run with:  forge test --match-contract BowstringFork -vv
-contract BowstringForkTest is Test {
+///         Run with:  forge test --match-contract GoldFork -vv
+contract GoldForkTest is Test {
     address constant POOL_MANAGER     = 0x8366a39CC670B4001A1121B8F6A443A643e40951;
     address constant POSITION_MANAGER = 0x58daec3116aae6D93017bAAea7749052E8a04fA7;
     address constant PERMIT2          = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
@@ -21,13 +21,13 @@ contract BowstringForkTest is Test {
     uint256 constant SLOT_GENESIS_COMPLETE   = 8;
     uint256 constant SLOT_CURRENT_DIFFICULTY = 11;
 
-    Bowstring internal bow;
+    Gold internal gold;
 
     function setUp() public {
         vm.createSelectFork(vm.envString("ROBINHOOD_RPC"));
 
         bytes memory initCode = abi.encodePacked(
-            type(Bowstring).creationCode,
+            type(Gold).creationCode,
             abi.encode(POOL_MANAGER, POSITION_MANAGER, PERMIT2)
         );
         bytes32 initCodeHash = keccak256(initCode);
@@ -41,9 +41,9 @@ contract BowstringForkTest is Test {
         require(ok, "create2 deploy failed");
         require(predicted.code.length > 0, "no code at predicted");
 
-        bow = Bowstring(payable(predicted));
+        gold = Gold(payable(predicted));
         require(uint160(predicted) & HOOK_MASK == HOOK_FLAGS, "bad hook bits");
-        require(bow.controller() == address(this), "controller mismatch");
+        require(gold.controller() == address(this), "controller mismatch");
     }
 
     /// Verifies seedPool against real V4: we shortcut the 210-tx genesis fill
@@ -51,42 +51,42 @@ contract BowstringForkTest is Test {
     /// LP minting, and Permit2 approvals.
     function test_seedPool_completes() public {
         uint256 eth = 10.5 ether;
-        vm.store(address(bow), bytes32(SLOT_GENESIS_MINTED), bytes32(bow.GENESIS_CAP()));
-        vm.store(address(bow), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
-        vm.deal(address(bow), eth);
+        vm.store(address(gold), bytes32(SLOT_GENESIS_MINTED), bytes32(gold.GENESIS_CAP()));
+        vm.store(address(gold), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
+        vm.deal(address(gold), eth);
 
-        bow.seedPool();
+        gold.seedPool();
 
-        assertTrue(bow.genesisComplete(), "genesis not complete");
-        assertGt(bow.currentDifficulty(), 0, "difficulty not set");
+        assertTrue(gold.genesisComplete(), "genesis not complete");
+        assertGt(gold.currentDifficulty(), 0, "difficulty not set");
         // V4 liquidity math can leave a few wei of dust above MINING_SUPPLY;
         // tolerate up to 10k wei (extremely tight relative to 18.9M * 1e18).
         assertApproxEqAbs(
-            bow.balanceOf(address(bow)),
-            bow.MINING_SUPPLY(),
+            gold.balanceOf(address(gold)),
+            gold.MINING_SUPPLY(),
             10_000,
             "mining supply not held by contract"
         );
-        assertGe(bow.balanceOf(address(bow)), bow.MINING_SUPPLY(), "below mining supply");
+        assertGe(gold.balanceOf(address(gold)), gold.MINING_SUPPLY(), "below mining supply");
     }
 
     /// After seedPool, mine() should be callable. We slam difficulty to max
     /// so any nonce satisfies the proof, then verify a successful mint.
     function test_mine_afterSeed() public {
         uint256 eth = 10.5 ether;
-        vm.store(address(bow), bytes32(SLOT_GENESIS_MINTED), bytes32(bow.GENESIS_CAP()));
-        vm.store(address(bow), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
-        vm.deal(address(bow), eth);
-        bow.seedPool();
+        vm.store(address(gold), bytes32(SLOT_GENESIS_MINTED), bytes32(gold.GENESIS_CAP()));
+        vm.store(address(gold), bytes32(SLOT_GENESIS_ETH_RAISED), bytes32(eth));
+        vm.deal(address(gold), eth);
+        gold.seedPool();
 
-        vm.store(address(bow), bytes32(SLOT_CURRENT_DIFFICULTY), bytes32(type(uint256).max));
+        vm.store(address(gold), bytes32(SLOT_CURRENT_DIFFICULTY), bytes32(type(uint256).max));
 
         address miner = address(0xBEEF);
         vm.prank(miner);
-        bow.mine(1);
+        gold.mine(1);
 
-        assertEq(bow.balanceOf(miner), bow.BASE_REWARD(), "miner did not receive reward");
-        assertEq(bow.totalMints(), 1);
+        assertEq(gold.balanceOf(miner), gold.BASE_REWARD(), "miner did not receive reward");
+        assertEq(gold.totalMints(), 1);
     }
 
     /// partialSeed path: only controller can call, must wait 30 min, requires
@@ -95,15 +95,15 @@ contract BowstringForkTest is Test {
         address buyer = address(0xABCD);
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
-        bow.mintGenesis{value: 0.05 ether}(5);
+        gold.mintGenesis{value: 0.05 ether}(5);
 
-        assertEq(bow.genesisMinted(), 5_000e18);
+        assertEq(gold.genesisMinted(), 5_000e18);
 
         vm.warp(block.timestamp + 30 minutes + 1);
-        bow.partialSeed();
+        gold.partialSeed();
 
-        assertTrue(bow.genesisComplete());
-        assertGt(bow.currentDifficulty(), 0);
+        assertTrue(gold.genesisComplete());
+        assertGt(gold.currentDifficulty(), 0);
     }
 
     /// partialSeed must revert before the 30 minute delay.
@@ -111,10 +111,10 @@ contract BowstringForkTest is Test {
         address buyer = address(0xABCD);
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
-        bow.mintGenesis{value: 0.05 ether}(5);
+        gold.mintGenesis{value: 0.05 ether}(5);
 
-        vm.expectRevert(Bowstring.TooSoon.selector);
-        bow.partialSeed();
+        vm.expectRevert(Gold.TooSoon.selector);
+        gold.partialSeed();
     }
 
     /// partialSeed must revert if called by anyone other than the controller.
@@ -122,12 +122,12 @@ contract BowstringForkTest is Test {
         address buyer = address(0xABCD);
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
-        bow.mintGenesis{value: 0.05 ether}(5);
+        gold.mintGenesis{value: 0.05 ether}(5);
 
         vm.warp(block.timestamp + 30 minutes + 1);
         vm.prank(buyer);
-        vm.expectRevert(Bowstring.NotController.selector);
-        bow.partialSeed();
+        vm.expectRevert(Gold.NotController.selector);
+        gold.partialSeed();
     }
 
     function _mineSalt(bytes32 initCodeHash) internal pure returns (bytes32, address) {

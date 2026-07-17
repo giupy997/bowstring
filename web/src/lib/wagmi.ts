@@ -36,7 +36,7 @@ export const robinhoodChain = defineChain({
 });
 
 export const config = getDefaultConfig({
-  appName: "Bowstring",
+  appName: "Gold",
   projectId,
   chains: [robinhoodChain],
   transports: {

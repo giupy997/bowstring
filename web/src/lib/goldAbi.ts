@@ -1,4 +1,4 @@
-export const bowstringAbi = [
+export const goldAbi = [
   {
     "type": "constructor",
     "inputs": [

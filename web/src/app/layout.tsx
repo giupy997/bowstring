@@ -14,23 +14,23 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bowstring-tbd.com"),
-  title: "Bowstring — mined ERC-8004 agent",
+  metadataBase: new URL("https://gold-tbd.com"),
+  title: "Gold — mined ERC-8004 agent",
   description:
-    "Bowstring ($BOW) is a mined ERC-8004 agent with a Uniswap V4 self-hook. The token, the V4 hook, and the PoW miner are the same contract.",
+    "Gold ($GOLD) is a mined ERC-8004 agent with a Uniswap V4 self-hook. The token, the V4 hook, and the PoW miner are the same contract.",
   icons: { icon: "/favicon.png" },
   openGraph: {
-    title: "Bowstring — mined ERC-8004 agent",
+    title: "Gold — mined ERC-8004 agent",
     description:
       "Mined ERC-8004 agent with a self-hook. Soulbound Miner Agent NFTs. No owner, no mint key, no proxy.",
-    url: "https://bowstring-tbd.com",
-    siteName: "Bowstring",
-    images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Bowstring sigil" }],
+    url: "https://gold-tbd.com",
+    siteName: "Gold",
+    images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Gold sigil" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bowstring — mined ERC-8004 agent",
+    title: "Gold — mined ERC-8004 agent",
     description:
       "Mined ERC-8004 agent with a self-hook. Soulbound Miner Agent NFTs.",
     images: ["/logo.png"],

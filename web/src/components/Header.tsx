@@ -11,20 +11,20 @@ export function Header() {
           <a href="/" className="app-logo">
             <Image
               src="/logo.png"
-              alt="Bowstring"
+              alt="Gold"
               width={32}
               height={32}
               priority
               className="app-logo-mark"
             />
-            <span className="app-logo-text">BOW</span>
+            <span className="app-logo-text">GOLD</span>
           </a>
           <nav className="hidden sm:flex gap-7">
             <a href="#genesis" className="nav-link">genesis</a>
             <a href="#mine" className="nav-link">mine</a>
             <a href="/whitepaper" className="nav-link">whitepaper</a>
             <a
-              href="https://x.com/bowstring-tbd"
+              href="https://x.com/gold-tbd"
               target="_blank"
               rel="noopener noreferrer"
               className="nav-link"

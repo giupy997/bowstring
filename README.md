@@ -1,4 +1,4 @@
-# BOWSTRING — Robinhood Chain
+# GOLD — Robinhood Chain
 
 Mined ERC-20 with a self-hook — the token contract IS its own Uniswap V4
 hook. One address, one bytecode: the token, the hook, and the PoW miner
@@ -14,16 +14,16 @@ Logic forked 1:1 from `hash256.org` (MIT). Branding and frontend are new.
 
 ## Architecture
 
-- **Token** — ERC-20 named `Bowstring` / `BOW`, 21M cap, 18 decimals.
-- **Genesis sale** — 1.05M BOW (5%) sold at `0.01 ETH` per `1,000 BOW`,
+- **Token** — ERC-20 named `Gold` / `GOLD`, 21M cap, 18 decimals.
+- **Genesis sale** — 1.05M GOLD (5%) sold at `0.01 ETH` per `1,000 GOLD`,
   max 5 units per tx. ETH raised goes into the Uniswap V4 pool.
 - **Pool seeding** — once genesis is sold out (or 30 min after deploy via
-  `partialSeed`), 1.05M BOW + raised ETH form the V4 LP; the controller
+  `partialSeed`), 1.05M GOLD + raised ETH form the V4 LP; the controller
   receives the LP position.
-- **Mining** — 18.9M BOW (90%) released via PoW.
+- **Mining** — 18.9M GOLD (90%) released via PoW.
   - Challenge: `keccak256(keccak256(chainId, contract, miner, epoch), nonce) < currentDifficulty`
   - Epoch: every 100 blocks (~20 min, see block-number note below)
-  - Reward: `100 BOW >> era`, era = `totalMints / 100_000`
+  - Reward: `100 GOLD >> era`, era = `totalMints / 100_000`
   - Retarget: every 2016 mints, clamped ±4×, targeting ~1 mint / 10 min
   - Cap: 1 mint/block
   - Replay protection: per-(miner, nonce, epoch)
@@ -38,7 +38,7 @@ Logic forked 1:1 from `hash256.org` (MIT). Branding and frontend are new.
 > 2026-07-15 via `eth_call` state-override (NUMBER opcode == Ethereum
 > mainnet height). The timing constants therefore use the original
 > Ethereum-denominated values: `EPOCH_BLOCKS = 100` → ~20 min epoch,
-> `TARGET_BLOCKS_PER_MINT = 50` → ~1 mint / 10 min, 18.9M BOW released
+> `TARGET_BLOCKS_PER_MINT = 50` → ~1 mint / 10 min, 18.9M GOLD released
 > over ~3.6 years at target rate.
 
 ## Verified chain facts (2026-07-15)
@@ -98,11 +98,11 @@ The script:
 
 Pick **one** of these signing methods:
 
-**Foundry encrypted keystore** (`cast wallet import bowstring --interactive`):
+**Foundry encrypted keystore** (`cast wallet import gold --interactive`):
 ```bash
 forge script script/Deploy.s.sol \
   --rpc-url $ROBINHOOD_RPC \
-  --account bowstring \
+  --account gold \
   --broadcast \
   --verify \
   --verifier blockscout \
@@ -138,7 +138,7 @@ After the tx confirms:
 - Verify on Blockscout the source is shown (`--verify` flag did this).
 - Read `controller()` — must be your deploy EOA.
 - Read `genesisComplete()` — must be `false`.
-- Fill `BOW_ADDRESS` in `web/src/lib/contract.ts`.
+- Fill `GOLD_ADDRESS` in `web/src/lib/contract.ts`.
 
 ### 5. Opening genesis
 
@@ -160,10 +160,10 @@ call, `mine()` becomes callable.
 ### 7. Deploy MinerAgent (optional but recommended)
 
 ```bash
-BOW_ADDRESS=0xYourBowstring \
+GOLD_ADDRESS=0xYourGold \
 forge script script/DeployMinerAgent.s.sol \
   --rpc-url $ROBINHOOD_RPC \
-  --account bowstring \
+  --account gold \
   --broadcast \
   --verify \
   --verifier blockscout \
@@ -181,7 +181,7 @@ BASE_URI="https://YOUR_DOMAIN/api/agent/" \
 CONTRACT_URI="https://YOUR_DOMAIN/api/collection" \
 forge script script/SetMinerAgentURI.s.sol \
   --rpc-url $ROBINHOOD_RPC \
-  --account bowstring \
+  --account gold \
   --broadcast
 ```
 
@@ -191,7 +191,7 @@ forge script script/SetMinerAgentURI.s.sol \
 AGENT_URI="https://YOUR_DOMAIN/agent.json" \
 IDENTITY_REGISTRY=0x...                    \
 forge script script/RegisterAgent.s.sol  \
-  --rpc-url $ROBINHOOD_RPC --account bowstring --broadcast
+  --rpc-url $ROBINHOOD_RPC --account gold --broadcast
 ```
 
 The ERC-8004 IdentityRegistry address on Robinhood Chain must be supplied
@@ -202,13 +202,13 @@ registration, fill the agent id into the NFT metadata routes
 
 ## Pre-launch checklist (branding)
 
-- [ ] Domain: replace `bowstring-tbd.com` placeholders (`layout.tsx`,
+- [ ] Domain: replace `gold-tbd.com` placeholders (`layout.tsx`,
       `api/collection/route.ts`) and the `Site:`/`X:` lines in
-      `src/Bowstring.sol` — the contract header is immutable once deployed.
+      `src/Gold.sol` — the contract header is immutable once deployed.
 - [ ] `NEXT_PUBLIC_WC_PROJECT_ID` (Reown/WalletConnect) in Netlify env.
 - [ ] NFT artworks: the 10 IPFS artworks referenced by
       `api/agent/[id]/route.ts` are still the NONCE set — regenerate or
-      re-pin for the Bowstring brand.
+      re-pin for the Gold brand.
 - [ ] `web/public/logo.png` + hero art still NONCE-branded.
 
 ## Testing
@@ -219,7 +219,7 @@ forge test -vv
 
 The unit tests cover the contract surface (mine, genesis, refund,
 seed, swap, claim, soulbound NFT, tier resolution). They are
-chain-agnostic — no fork required. Fork tests (`BowstringFork`) run
+chain-agnostic — no fork required. Fork tests (`GoldFork`) run
 against `ROBINHOOD_RPC`.
 
 ## Storage layout
