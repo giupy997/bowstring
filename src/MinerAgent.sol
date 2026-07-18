@@ -152,7 +152,7 @@ contract MinerAgent is ERC721, IERC2981 {
             '{"name":"Bowstring Miner Agent",',
             '"description":"Soulbound ERC-8004 identity NFTs for $BOW participants. One per address, claimable once. Metadata reflects the live $BOW holdings of the agent wallet.",',
             '"image":"data:image/svg+xml;base64,', image, '",',
-            '"external_link":"https://github.com/wayne97dev/mineeth"}'
+            '"external_link":"https://github.com/giupy997/bowstring"}'
         ));
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
     }

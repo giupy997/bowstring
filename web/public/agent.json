@@ -13,7 +13,7 @@
     "contract": "eip155:4663:0x0000000000000000000000000000000000000000",
     "frontend": "https://bowstring-tbd.com",
     "whitepaper": "https://bowstring-tbd.com/whitepaper.pdf",
-    "source": "https://github.com/wayne97dev/bowstring"
+    "source": "https://github.com/giupy997/bowstring"
   },
   "capabilities": [
     {
