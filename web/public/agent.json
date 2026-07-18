@@ -84,7 +84,7 @@
   "extensions": {
     "minerAgent": {
       "description": "Soulbound ERC-721 collection where BOW participants can claim a per-address NFT identity (one per wallet). 10 artworks total: 5 tiers x 2 variants. Tier scales dynamically with live BOW holdings - Initiate (< 1,000), Bronze (1k-9.9k), Silver (10k-99.9k), Gold (100k-999.9k), Platinum (>= 1M). Variant is fixed at mint, hashed deterministically from the tokenId. Each artwork represents a transaction lifecycle state. Minimum 1 BOW held to claim.",
-      "address": "0x0000000000000000000000000000000000000000"
+      "address": "0x4746b7EAF60E3dBbbC74f7173Ef4d8967a68236c"
     },
     "agentRegistration": {
       "chain": "robinhood",

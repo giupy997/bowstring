@@ -12,10 +12,11 @@ export const BOW_DECIMALS = 18;
 export const BOW_SYMBOL = "BOW";
 
 // MinerAgent ERC-721 contract address, deployed against the Bowstring token
-// above via DeployMinerAgent.s.sol. NOT DEPLOYED YET — fill in after the
-// token deploy. CLAIM_LIVE in MinerAgent.tsx stays off until this is set.
+// above via DeployMinerAgent.s.sol on 2026-07-18, verified on Blockscout.
+// tx: 0x66ced2be27a6a41de02d0ff89cc8e1a9aaf852136b2c9db4ccecada83bc24941
+// block: 13222806 · uriUpdater: 0x4e912cf5…0A5623
 export const MINER_AGENT_ADDRESS: Address =
-  "0x0000000000000000000000000000000000000000";
+  "0x4746b7EAF60E3dBbbC74f7173Ef4d8967a68236c";
 
 // V4 PoolManager on Robinhood Chain — used to display pool info, not
 // required for contract reads. Canonical day-one deployment; verify against
