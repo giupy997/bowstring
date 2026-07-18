@@ -1,9 +1,10 @@
 [build]
   base = "web"
   command = "npm run build"
-  # Note: the Netlify CLI resolves `publish` from the repo root (not from
-  # `base`), so this must be the root-relative path.
-  publish = "web/.next"
+  # Git-based Netlify builds resolve `publish` relative to `base` — keep
+  # ".next" here. (The CLI resolves it from the repo root instead; for a
+  # one-off CLI deploy use: netlify deploy --build --prod --dir web/.next)
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
