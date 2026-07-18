@@ -14,12 +14,8 @@ remappings = [
 ]
 
 [rpc_endpoints]
-base         = "${BASE_RPC}"
-base_sepolia = "${BASE_SEPOLIA_RPC}"
+robinhood = "${ROBINHOOD_RPC}"
 
-[etherscan]
-# Etherscan v2 unified API: one endpoint, all chains, identified by chainid.
-# Basescan is part of the Etherscan family and accepts the same API key.
-# (The basescan.org/v2 URL pattern doesn't exist — using it returns 404.)
-base         = { key = "${BASESCAN_KEY}", url = "https://api.etherscan.io/v2/api?chainid=8453" }
-base_sepolia = { key = "${BASESCAN_KEY}", url = "https://api.etherscan.io/v2/api?chainid=84532" }
+# Source verification on Robinhood Chain goes through Blockscout, which
+# needs no API key: pass --verifier blockscout --verifier-url
+# 'https://robinhoodchain.blockscout.com/api/' on the forge command line.

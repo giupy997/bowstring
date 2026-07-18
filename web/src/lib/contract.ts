@@ -1,11 +1,12 @@
 import type { Address } from "viem";
 
 // Bowstring ERC-20 token + V4 hook + PoW miner — Robinhood Chain (4663).
-// NOT DEPLOYED YET: replace the zero address with the Deploy.s.sol output
-// (and verify the lower 14 bits of the address == 0x20CC hook flags)
-// before going live. The UI shows a "not deployed" banner while zero.
+// Deployed via Deploy.s.sol on 2026-07-18, verified on Blockscout.
+// Hook bits validated: lower 14 bits of address == 0x20CC.
+// tx: 0x533739f4b1204b96334ea90a8562f70f3e755ffe719645478d1b5577e3d060ef
+// block: 13217993 · salt: 0x159a0 · controller: 0x4e912cf5…0A5623
 export const BOW_ADDRESS: Address =
-  "0x0000000000000000000000000000000000000000";
+  "0x0156DC9F55D852f45C895Ec7daAa08Ca7fc120cC";
 
 export const BOW_DECIMALS = 18;
 export const BOW_SYMBOL = "BOW";

@@ -10,7 +10,7 @@
     "namespace": "eip155"
   },
   "endpoints": {
-    "contract": "eip155:4663:0x0000000000000000000000000000000000000000",
+    "contract": "eip155:4663:0x0156DC9F55D852f45C895Ec7daAa08Ca7fc120cC",
     "frontend": "https://bowstringrh.com",
     "whitepaper": "https://bowstringrh.com/whitepaper.pdf",
     "source": "https://github.com/giupy997/bowstring"
@@ -38,10 +38,10 @@
       "via": "uniswap-v4-pool",
       "poolKey": {
         "currency0": "0x0000000000000000000000000000000000000000",
-        "currency1": "0x0000000000000000000000000000000000000000",
+        "currency1": "0x0156DC9F55D852f45C895Ec7daAa08Ca7fc120cC",
         "fee": 0,
         "tickSpacing": 200,
-        "hooks": "0x0000000000000000000000000000000000000000"
+        "hooks": "0x0156DC9F55D852f45C895Ec7daAa08Ca7fc120cC"
       }
     },
     {
