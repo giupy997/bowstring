@@ -25,7 +25,7 @@ interface IMinerAgent {
 ///           BASE_URI="https://YOUR-DOMAIN/api/agent/" \
 ///           CONTRACT_URI="https://YOUR-DOMAIN/nft/collection.json" \
 ///           forge script script/SetMinerAgentURI.s.sol \
-///             --rpc-url $ROBINHOOD_RPC --account gold --broadcast
+///             --rpc-url $ROBINHOOD_RPC --account bowstring --broadcast
 ///
 ///         CONTRACT_URI is optional — leave it unset to keep the on-chain
 ///         default contractURI() SVG card.

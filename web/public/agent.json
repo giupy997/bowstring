@@ -1,7 +1,7 @@
 {
   "$schema": "https://eips.ethereum.org/EIPS/eip-8004",
-  "name": "Gold",
-  "description": "GOLD is a mined ERC-20 token whose contract is also its own Uniswap V4 swap hook. One bytecode, one address. The token, the hook, and the PoW miner are the same contract. No owner, no upgrade path, no admin keys. GOLD is autonomous: it accepts genesis purchases, seeds its own V4 liquidity pool when ready, locks the LP forever via hook reverts on liquidity modifications, takes a 1% swap fee on all trades, and pays mining rewards in PoW-bound nonces. Deployed on Robinhood Chain (4663). Everything is verifiable on-chain.",
+  "name": "Bowstring",
+  "description": "BOW is a mined ERC-20 token whose contract is also its own Uniswap V4 swap hook. One bytecode, one address. The token, the hook, and the PoW miner are the same contract. No owner, no upgrade path, no admin keys. BOW is autonomous: it accepts genesis purchases, seeds its own V4 liquidity pool when ready, locks the LP forever via hook reverts on liquidity modifications, takes a 1% swap fee on all trades, and pays mining rewards in PoW-bound nonces. Deployed on Robinhood Chain (4663). Everything is verifiable on-chain.",
   "version": "1.0.0",
   "type": "token-agent",
   "chain": {
@@ -11,20 +11,20 @@
   },
   "endpoints": {
     "contract": "eip155:4663:0x0000000000000000000000000000000000000000",
-    "frontend": "https://gold-tbd.com",
-    "whitepaper": "https://gold-tbd.com/whitepaper.pdf",
-    "source": "https://github.com/wayne97dev/gold"
+    "frontend": "https://bowstring-tbd.com",
+    "whitepaper": "https://bowstring-tbd.com/whitepaper.pdf",
+    "source": "https://github.com/wayne97dev/bowstring"
   },
   "capabilities": [
     {
       "id": "mintGenesis",
-      "description": "Buy raw GOLD at fixed 0.01 ETH per 1,000 GOLD during the genesis phase. Max 5 units per tx. Available until genesisComplete = true.",
+      "description": "Buy raw BOW at fixed 0.01 ETH per 1,000 BOW during the genesis phase. Max 5 units per tx. Available until genesisComplete = true.",
       "abi": "mintGenesis(uint256 units)",
       "payable": true
     },
     {
       "id": "refundGenesis",
-      "description": "Burn genesis-minted GOLD back to the contract in exchange for the original ETH price, after a 3-day grace period from deploy, if the pool has not been seeded.",
+      "description": "Burn genesis-minted BOW back to the contract in exchange for the original ETH price, after a 3-day grace period from deploy, if the pool has not been seeded.",
       "abi": "refundGenesis(uint256 tokenAmount)"
     },
     {
@@ -34,7 +34,7 @@
     },
     {
       "id": "swap",
-      "description": "Trade GOLD against ETH through the locked Uniswap V4 pool on Robinhood Chain. The 1% fee is taken on the ETH side and accrues to the contract balance, claimable by the controller via claimFees().",
+      "description": "Trade BOW against ETH through the locked Uniswap V4 pool on Robinhood Chain. The 1% fee is taken on the ETH side and accrues to the contract balance, claimable by the controller via claimFees().",
       "via": "uniswap-v4-pool",
       "poolKey": {
         "currency0": "0x0000000000000000000000000000000000000000",
@@ -52,12 +52,12 @@
     },
     {
       "id": "seedPool",
-      "description": "Initialize the V4 GOLD/ETH pool when genesis is fully sold out. Permissionless.",
+      "description": "Initialize the V4 BOW/ETH pool when genesis is fully sold out. Permissionless.",
       "abi": "seedPool()"
     },
     {
       "id": "partialSeed",
-      "description": "Controller-only seed of the pool with whatever genesis raised so far, callable after 30 minutes from deploy. Unsold genesis GOLD is never minted.",
+      "description": "Controller-only seed of the pool with whatever genesis raised so far, callable after 30 minutes from deploy. Unsold genesis BOW is never minted.",
       "abi": "partialSeed()",
       "access": "controller-only"
     }
@@ -83,7 +83,7 @@
   },
   "extensions": {
     "minerAgent": {
-      "description": "Soulbound ERC-721 collection where GOLD participants can claim a per-address NFT identity (one per wallet). 10 artworks total: 5 tiers x 2 variants. Tier scales dynamically with live GOLD holdings - Initiate (< 1,000), Bronze (1k-9.9k), Silver (10k-99.9k), Gold (100k-999.9k), Platinum (>= 1M). Variant is fixed at mint, hashed deterministically from the tokenId. Each artwork represents a transaction lifecycle state. Minimum 1 GOLD held to claim.",
+      "description": "Soulbound ERC-721 collection where BOW participants can claim a per-address NFT identity (one per wallet). 10 artworks total: 5 tiers x 2 variants. Tier scales dynamically with live BOW holdings - Initiate (< 1,000), Bronze (1k-9.9k), Silver (10k-99.9k), Gold (100k-999.9k), Platinum (>= 1M). Variant is fixed at mint, hashed deterministically from the tokenId. Each artwork represents a transaction lifecycle state. Minimum 1 BOW held to claim.",
       "address": "0x0000000000000000000000000000000000000000"
     },
     "agentRegistration": {

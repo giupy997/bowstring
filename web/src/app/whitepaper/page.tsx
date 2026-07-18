@@ -4,9 +4,9 @@ import { marked } from "marked";
 import { Header } from "@/components/Header";
 
 export const metadata = {
-  title: "Gold — Whitepaper",
+  title: "Bowstring — Whitepaper",
   description:
-    "Technical and economic specification of the Gold ($GOLD) contract.",
+    "Technical and economic specification of the Bowstring ($BOW) contract.",
 };
 
 // The markdown lives at the repo root. We read it at build time and render

@@ -3,7 +3,7 @@
 
 Outputs two copies:
     web/public/whitepaper.pdf      — served from the live site
-    ~/Desktop/Gold-Whitepaper.pdf — convenience local copy
+    ~/Desktop/Bowstring-Whitepaper.pdf — convenience local copy
 
 Requires `marked` (fetched on-demand via npx) and a Chrome install at the
 standard macOS location for headless print-to-PDF.
@@ -21,7 +21,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MD = ROOT / "WHITEPAPER.md"
 WEB_PUBLIC_PDF = ROOT / "web" / "public" / "whitepaper.pdf"
-DESKTOP_PDF = pathlib.Path.home() / "Desktop" / "Gold-Whitepaper.pdf"
+DESKTOP_PDF = pathlib.Path.home() / "Desktop" / "Bowstring-Whitepaper.pdf"
 TMP = pathlib.Path("/tmp/nonce-whitepaper")
 HTML = TMP / "index.html"
 
@@ -81,7 +81,7 @@ def main() -> None:
 
     html = (
         '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
-        '<title>Gold Whitepaper</title>'
+        '<title>Bowstring Whitepaper</title>'
         f'<style>{CSS}</style></head><body>{body}</body></html>'
     )
     HTML.write_text(html)

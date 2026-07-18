@@ -8,8 +8,8 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { parseEther, formatUnits } from "viem";
-import { goldAbi } from "@/lib/goldAbi";
-import { GOLD_ADDRESS } from "@/lib/contract";
+import { bowstringAbi } from "@/lib/bowstringAbi";
+import { BOW_ADDRESS } from "@/lib/contract";
 
 const PRICE_PER_UNIT_ETH = 0.01;
 const TOKENS_PER_UNIT = 1000;
@@ -21,23 +21,23 @@ export function Genesis() {
   const [refundUnits, setRefundUnits] = useState(1);
 
   const { data: genesis } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "genesisState",
     query: { refetchInterval: 12_000 },
   });
   const complete = (genesis as readonly [bigint, bigint, bigint, boolean] | undefined)?.[3] ?? false;
 
   const { data: refundOpen } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "refundUnlocked",
     query: { refetchInterval: 60_000 },
   });
 
   const { data: userBalance } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
     query: { enabled: !!address && (refundOpen as boolean) === true, refetchInterval: 12_000 },
@@ -65,8 +65,8 @@ export function Genesis() {
 
   function handleMint() {
     writeContract({
-      address: GOLD_ADDRESS,
-      abi: goldAbi,
+      address: BOW_ADDRESS,
+      abi: bowstringAbi,
       functionName: "mintGenesis",
       args: [BigInt(units)],
       value: parseEther(cost),
@@ -75,8 +75,8 @@ export function Genesis() {
 
   function handleRefund() {
     writeContract({
-      address: GOLD_ADDRESS,
-      abi: goldAbi,
+      address: BOW_ADDRESS,
+      abi: bowstringAbi,
       functionName: "refundGenesis",
       args: [BigInt(refundUnits) * BigInt(TOKENS_PER_UNIT) * 10n ** 18n],
     });
@@ -87,9 +87,9 @@ export function Genesis() {
       <div>
         <div className="panel-label">genesis mint</div>
         <p className="mt-2 text-sm" style={{ color: "var(--fg-muted)" }}>
-          Buy raw GOLD at the fixed pre-pool rate of{" "}
+          Buy raw BOW at the fixed pre-pool rate of{" "}
           <span className="font-mono" style={{ color: "var(--fg)" }}>
-            0.01 ETH per 1,000 GOLD
+            0.01 ETH per 1,000 BOW
           </span>
           . Max {MAX_UNITS_PER_TX} units per tx. The ETH you spend funds the V4
           liquidity pool that goes live after genesis sells out.
@@ -121,7 +121,7 @@ export function Genesis() {
         </div>
         <div className="text-right">
           <span style={{ color: "var(--fg-muted)" }}>you get: </span>
-          <span style={{ color: "var(--accent)" }}>{String(tokens).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} GOLD</span>
+          <span style={{ color: "var(--accent)" }}>{String(tokens).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} BOW</span>
         </div>
       </div>
 
@@ -148,8 +148,8 @@ export function Genesis() {
             <div className="panel-label">refund (grace open)</div>
             <p className="mt-1 text-xs" style={{ color: "var(--fg-muted)" }}>
               Three days have passed without the pool being seeded. You can
-              burn your genesis GOLD back for the ETH you paid. You currently
-              hold {formatUnits(userTokens, 18)} GOLD ({userUnits.toString()}{" "}
+              burn your genesis BOW back for the ETH you paid. You currently
+              hold {formatUnits(userTokens, 18)} BOW ({userUnits.toString()}{" "}
               unit{userUnits === 1n ? "" : "s"} refundable).
             </p>
           </div>

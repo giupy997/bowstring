@@ -2,12 +2,12 @@
 pragma solidity ^0.8.26;
 
 /*
-    ██████╗  ██████╗ ██╗     ██████╗
-   ██╔════╝ ██╔═══██╗██║     ██╔══██╗
-   ██║  ███╗██║   ██║██║     ██║  ██║
-   ██║   ██║██║   ██║██║     ██║  ██║
-   ╚██████╔╝╚██████╔╝███████╗██████╔╝
-    ╚═════╝  ╚═════╝ ╚══════╝╚═════╝
+    █████╗ ██████╗ ██████╗  ██████╗ ██╗    ██╗
+   ██╔══██╗██╔══██╗██╔══██╗██╔═══██╗██║    ██║
+   ███████║██████╔╝██████╔╝██║   ██║██║ █╗ ██║
+   ██╔══██║██╔══██╗██╔══██╗██║   ██║██║███╗██║
+   ██║  ██║██║  ██║██║  ██║╚██████╔╝╚███╔███╔╝
+   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝
 
    Mined ERC20 with a self-hook. The token contract IS
    its own Uniswap V4 hook and its own PoW miner. One
@@ -40,7 +40,7 @@ interface IAllowanceTransfer {
     function approve(address token, address spender, uint160 amount, uint48 expiration) external;
 }
 
-contract Gold is ERC20, IHooks, ReentrancyGuard {
+contract Bowstring is ERC20, IHooks, ReentrancyGuard {
     using PoolIdLibrary for PoolKey;
     using CurrencyLibrary for Currency;
     using BalanceDeltaLibrary for BalanceDelta;
@@ -64,7 +64,7 @@ contract Gold is ERC20, IHooks, ReentrancyGuard {
     // EPOCH_BLOCKS = 100 → ~20 min epoch (challenge refresh window).
     // TARGET_BLOCKS_PER_MINT = 50 → the retargeting algorithm aims for 1 mint
     // per ~600 s (10 min) on average, Bitcoin-grade slow. At BASE_REWARD =
-    // 100 GOLD that stretches the 18.9M mining supply over ~3.6 years.
+    // 100 BOW that stretches the 18.9M mining supply over ~3.6 years.
     // MAX_MINTS_PER_BLOCK = 1 caps the per-block burst to a single mint, so
     // neither one block nor a flood of parallel miners can sweep emission the
     // way v1 (>>32 start, 10 per block) allowed — that misconfig let ~1% of
@@ -83,7 +83,7 @@ contract Gold is ERC20, IHooks, ReentrancyGuard {
     uint256 public constant PARTIAL_SEED_DELAY = 30 minutes;
 
     /// @notice Window after deploy after which any genesis buyer can call
-    ///         `refundGenesis` to redeem their GOLD for the ETH they paid,
+    ///         `refundGenesis` to redeem their BOW for the ETH they paid,
     ///         provided the pool has not yet been seeded. Acts as a safety
     ///         net if `seedPool` / `partialSeed` cannot complete.
     uint256 public constant REFUND_GRACE = 3 days;
@@ -148,7 +148,7 @@ contract Gold is ERC20, IHooks, ReentrancyGuard {
         IPoolManager poolManager_,
         address      positionManager_,
         address      permit2_
-    ) ERC20("Gold", "GOLD") {
+    ) ERC20("Bowstring", "BOW") {
         require(address(poolManager_) != address(0));
         require(positionManager_      != address(0));
         require(permit2_              != address(0));
@@ -182,9 +182,9 @@ contract Gold is ERC20, IHooks, ReentrancyGuard {
     }
 
     /// @notice Genesis buyer escape hatch. After `REFUND_GRACE` from deploy,
-    ///         if the pool has not been seeded yet, holders of genesis GOLD
+    ///         if the pool has not been seeded yet, holders of genesis BOW
     ///         can burn their balance back to the contract and recover the
-    ///         ETH at the original 0.01 ETH / 1,000 GOLD price. Useful when
+    ///         ETH at the original 0.01 ETH / 1,000 BOW price. Useful when
     ///         seeding is technically blocked and would otherwise lock
     ///         buyer ETH on the contract forever.
     function refundGenesis(uint256 tokenAmount) external nonReentrant {

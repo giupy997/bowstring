@@ -2,9 +2,9 @@
 pragma solidity ^0.8.26;
 
 import {Test} from "forge-std/Test.sol";
-import {MinerAgent, IGold} from "../src/MinerAgent.sol";
+import {MinerAgent, IBowstring} from "../src/MinerAgent.sol";
 
-contract MockGold is IGold {
+contract MockBowstring is IBowstring {
     mapping(address => uint256) public override balanceOf;
     uint256 public override totalMints;
     uint256 public override totalMiningMinted;
@@ -14,19 +14,19 @@ contract MockGold is IGold {
 
 contract MinerAgentTest is Test {
     MinerAgent internal agent;
-    MockGold   internal gold;
+    MockBowstring   internal bow;
 
     address internal alice  = address(0xAAAA);
     address internal bob    = address(0xBBBB);
     address internal carol  = address(0xCCCC);
 
     function setUp() public {
-        gold = new MockGold();
-        agent = new MinerAgent(IGold(address(gold)));
+        bow = new MockBowstring();
+        agent = new MinerAgent(IBowstring(address(bow)));
     }
 
     function test_claim_basicHappyPath() public {
-        gold.setBalance(alice, 500e18);
+        bow.setBalance(alice, 500e18);
         vm.prank(alice);
         uint256 tokenId = agent.claim();
 
@@ -36,28 +36,28 @@ contract MinerAgentTest is Test {
         assertEq(agent.totalAgents(), 1);
     }
 
-    function test_claim_revertsIfNoGold() public {
+    function test_claim_revertsIfNoBowstring() public {
         vm.prank(alice);
         vm.expectRevert(MinerAgent.NotEligible.selector);
         agent.claim();
     }
 
     function test_claim_revertsOnDustBalance() public {
-        // 1 wei = below the 1 GOLD floor; should be rejected even though
+        // 1 wei = below the 1 BOW floor; should be rejected even though
         // the legacy "balanceOf > 0" check would have let it through.
-        gold.setBalance(alice, 1);
+        bow.setBalance(alice, 1);
         vm.prank(alice);
         vm.expectRevert(MinerAgent.NotEligible.selector);
         agent.claim();
 
-        // 0.999... GOLD: one wei short of the floor.
-        gold.setBalance(alice, 1e18 - 1);
+        // 0.999... BOW: one wei short of the floor.
+        bow.setBalance(alice, 1e18 - 1);
         vm.prank(alice);
         vm.expectRevert(MinerAgent.NotEligible.selector);
         agent.claim();
 
-        // Exactly 1 GOLD: passes.
-        gold.setBalance(alice, 1e18);
+        // Exactly 1 BOW: passes.
+        bow.setBalance(alice, 1e18);
         vm.prank(alice);
         uint256 tokenId = agent.claim();
         assertEq(tokenId, 1);
@@ -69,7 +69,7 @@ contract MinerAgentTest is Test {
     }
 
     function test_claim_revertsOnDoubleClaim() public {
-        gold.setBalance(alice, 1_000e18);
+        bow.setBalance(alice, 1_000e18);
         vm.prank(alice);
         agent.claim();
         vm.prank(alice);
@@ -78,9 +78,9 @@ contract MinerAgentTest is Test {
     }
 
     function test_claim_multipleHoldersIncrementalIds() public {
-        gold.setBalance(alice, 100e18);
-        gold.setBalance(bob,   100e18);
-        gold.setBalance(carol, 100e18);
+        bow.setBalance(alice, 100e18);
+        bow.setBalance(bob,   100e18);
+        bow.setBalance(carol, 100e18);
 
         vm.prank(alice); uint256 a = agent.claim();
         vm.prank(bob);   uint256 b = agent.claim();
@@ -91,7 +91,7 @@ contract MinerAgentTest is Test {
     }
 
     function test_soulbound_transferReverts() public {
-        gold.setBalance(alice, 100e18);
+        bow.setBalance(alice, 100e18);
         vm.prank(alice);
         uint256 id = agent.claim();
 
@@ -101,7 +101,7 @@ contract MinerAgentTest is Test {
     }
 
     function test_soulbound_safeTransferReverts() public {
-        gold.setBalance(alice, 100e18);
+        bow.setBalance(alice, 100e18);
         vm.prank(alice);
         uint256 id = agent.claim();
 
@@ -111,7 +111,7 @@ contract MinerAgentTest is Test {
     }
 
     function test_tokenURI_returnsDataUri() public {
-        gold.setBalance(alice, 12_345e18);
+        bow.setBalance(alice, 12_345e18);
         vm.prank(alice);
         uint256 id = agent.claim();
         string memory uri = agent.tokenURI(id);
@@ -132,9 +132,9 @@ contract MinerAgentTest is Test {
 
     function test_tier_thresholds() public {
         // Tier boundaries: Initiate < 1k ≤ Bronze < 10k ≤ Silver < 100k ≤ Gold < 1M ≤ Platinum
-        gold.setBalance(alice, 999e18);            // Initiate (one wei short of Bronze)
-        gold.setBalance(bob,   1_000e18);          // Bronze   (exactly at threshold)
-        gold.setBalance(carol, 10_000e18);         // Silver   (exactly at threshold)
+        bow.setBalance(alice, 999e18);            // Initiate (one wei short of Bronze)
+        bow.setBalance(bob,   1_000e18);          // Bronze   (exactly at threshold)
+        bow.setBalance(carol, 10_000e18);         // Silver   (exactly at threshold)
 
         vm.prank(alice); agent.claim();
         vm.prank(bob);   agent.claim();
@@ -173,8 +173,8 @@ contract MinerAgentTest is Test {
     }
 
     function test_name_and_symbol() public view {
-        assertEq(agent.name(), "Gold Miner Agent");
-        assertEq(agent.symbol(), "GMA");
+        assertEq(agent.name(), "Bowstring Miner Agent");
+        assertEq(agent.symbol(), "BMA");
     }
 
     // ───────── URI swap mechanism ─────────
@@ -196,7 +196,7 @@ contract MinerAgentTest is Test {
     }
 
     function test_setExternalBaseURI_changesTokenURI() public {
-        gold.setBalance(alice, 100e18);
+        bow.setBalance(alice, 100e18);
         vm.prank(alice);
         agent.claim();
 
@@ -207,7 +207,7 @@ contract MinerAgentTest is Test {
     }
 
     function test_setExternalBaseURI_emptyResetsToOnChain() public {
-        gold.setBalance(alice, 100e18);
+        bow.setBalance(alice, 100e18);
         vm.prank(alice);
         agent.claim();
 

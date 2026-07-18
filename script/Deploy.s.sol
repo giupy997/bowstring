@@ -2,10 +2,10 @@
 pragma solidity ^0.8.26;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {Gold} from "../src/Gold.sol";
+import {Bowstring} from "../src/Bowstring.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
-/// @notice Deploys Gold via the canonical deterministic-deployer factory
+/// @notice Deploys Bowstring via the canonical deterministic-deployer factory
 ///         (0x4e59b44847b379578588920cA78FbF26c0B4956C, Arachnid's proxy)
 ///         after mining a CREATE2 salt that yields an address whose
 ///         lower 14 bits match the V4 hook permission flags.
@@ -43,7 +43,7 @@ contract Deploy is Script {
         address permit2         = _envOr("PERMIT2", CANONICAL_PERMIT2);
 
         bytes memory initCode = abi.encodePacked(
-            type(Gold).creationCode,
+            type(Bowstring).creationCode,
             abi.encode(poolManager, positionManager, permit2)
         );
         bytes32 initCodeHash = keccak256(initCode);
@@ -64,7 +64,7 @@ contract Deploy is Script {
 
         require(predicted.code.length > 0, "no code at predicted address");
         require(uint160(predicted) & HOOK_MASK == HOOK_FLAGS, "hook bits mismatch");
-        console2.log("Gold deployed:  ", predicted);
+        console2.log("Bowstring deployed:  ", predicted);
         console2.log("Controller (tx.origin):", tx.origin);
     }
 

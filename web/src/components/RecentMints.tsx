@@ -7,13 +7,13 @@ import {
   useBlockNumber,
 } from "wagmi";
 import { formatUnits, parseAbiItem, type Address } from "viem";
-import { GOLD_ADDRESS, GOLD_SYMBOL } from "@/lib/contract";
+import { BOW_ADDRESS, BOW_SYMBOL } from "@/lib/contract";
 
 /**
- * Unified on-chain activity feed for the Gold contract. Surfaces the three
+ * Unified on-chain activity feed for the Bowstring contract. Surfaces the three
  * meaningful event types into a single chronological list:
  *
- *   - GenesisMint   buyer paid ETH for raw GOLD during the pre-seed phase
+ *   - GenesisMint   buyer paid ETH for raw BOW during the pre-seed phase
  *   - Mined         miner found a valid nonce, received the era's reward
  *   - FeeCollected  someone swapped on the V4 pool, 1% landed on the contract
  *
@@ -32,8 +32,8 @@ type Activity = {
   kind: Kind;
   actor: Address;
   /** Amount tied to the event:
-   *  - genesis: GOLD tokens minted
-   *  - mined: GOLD reward
+   *  - genesis: BOW tokens minted
+   *  - mined: BOW reward
    *  - buy/sell: ETH fee (1% of trade size) */
   amount: bigint;
   txHash: `0x${string}`;
@@ -102,7 +102,7 @@ function labelFor(act: Activity): { tag: string; color: string; line: React.Reac
             {actor}{" "}
             <span style={{ color: "var(--fg)" }}>bought</span>{" "}
             <span style={{ color: "var(--accent)" }}>
-              {formatUnits(act.amount, 18)} {GOLD_SYMBOL}
+              {formatUnits(act.amount, 18)} {BOW_SYMBOL}
             </span>
           </>
         ),
@@ -116,7 +116,7 @@ function labelFor(act: Activity): { tag: string; color: string; line: React.Reac
             {actor}{" "}
             <span style={{ color: "var(--fg)" }}>mined</span>{" "}
             <span style={{ color: "var(--accent)" }}>
-              {formatUnits(act.amount, 18)} {GOLD_SYMBOL}
+              {formatUnits(act.amount, 18)} {BOW_SYMBOL}
             </span>
           </>
         ),
@@ -130,7 +130,7 @@ function labelFor(act: Activity): { tag: string; color: string; line: React.Reac
           <>
             {actor}{" "}
             <span style={{ color: "var(--fg)" }}>
-              {act.kind === "buy" ? "bought" : "sold"} GOLD, fee
+              {act.kind === "buy" ? "bought" : "sold"} BOW, fee
             </span>{" "}
             <span style={{ color: "var(--accent)" }}>
               {formatUnits(act.amount, 18)} ETH
@@ -178,7 +178,7 @@ export function RecentMints() {
         const fromBlock =
           currentBlock > LOOKBACK_BLOCKS ? currentBlock - LOOKBACK_BLOCKS : 0n;
         const baseFilter = {
-          address: GOLD_ADDRESS,
+          address: BOW_ADDRESS,
           fromBlock,
           toBlock: currentBlock,
         } as const;
@@ -258,7 +258,7 @@ export function RecentMints() {
 
   // ─── Live watchers ──────────────────────────────────────────────────
   useWatchContractEvent({
-    address: GOLD_ADDRESS,
+    address: BOW_ADDRESS,
     abi: [eventGenesisMint],
     eventName: "GenesisMint",
     onLogs(logs) {
@@ -278,7 +278,7 @@ export function RecentMints() {
   });
 
   useWatchContractEvent({
-    address: GOLD_ADDRESS,
+    address: BOW_ADDRESS,
     abi: [eventMined],
     eventName: "Mined",
     onLogs(logs) {
@@ -297,7 +297,7 @@ export function RecentMints() {
   });
 
   useWatchContractEvent({
-    address: GOLD_ADDRESS,
+    address: BOW_ADDRESS,
     abi: [eventFeeCollected],
     eventName: "FeeCollected",
     onLogs(logs) {

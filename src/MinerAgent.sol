@@ -11,30 +11,30 @@ interface IERC2981 is IERC165 {
         external view returns (address receiver, uint256 royaltyAmount);
 }
 
-interface IGold {
+interface IBowstring {
     function balanceOf(address account) external view returns (uint256);
     function totalMints() external view returns (uint256);
     function totalMiningMinted() external view returns (uint256);
 }
 
 /// @title MinerAgent
-/// @notice Soulbound ERC-721 collection that gives each GOLD holder a
+/// @notice Soulbound ERC-721 collection that gives each BOW holder a
 ///         self-contained on-chain identity, ERC-8004 aligned. One agent
 ///         NFT per address; transfers are blocked because the token
 ///         represents proof of participation, not a tradeable asset.
-///         Metadata + image are generated on-chain from live GOLD state,
+///         Metadata + image are generated on-chain from live BOW state,
 ///         so the badge reflects the holder's current standing without
 ///         off-chain hosting.
 contract MinerAgent is ERC721, IERC2981 {
     using Strings for uint256;
     using Strings for address;
 
-    IGold public immutable gold;
+    IBowstring public immutable bowstring;
 
-    /// @notice Minimum GOLD balance required to claim an agent NFT. Set above
+    /// @notice Minimum BOW balance required to claim an agent NFT. Set above
     ///         dust so an attacker can't spin up thousands of wallets, dust
     ///         each with 1 wei, and farm meaningless Initiate-tier mints.
-    ///         1 full GOLD at the genesis price (0.01 ETH per 1k GOLD) costs
+    ///         1 full BOW at the genesis price (0.01 ETH per 1k BOW) costs
     ///         ~10 microETH plus gas — a real economic floor per identity.
     uint256 public constant MIN_BALANCE_TO_CLAIM = 1e18;
 
@@ -73,23 +73,23 @@ contract MinerAgent is ERC721, IERC2981 {
     event ExternalBaseURISet(string uri);
     event MetadataLocked();
 
-    constructor(IGold gold_) ERC721("Gold Miner Agent", "GMA") {
-        gold = gold_;
+    constructor(IBowstring bowstring_) ERC721("Bowstring Miner Agent", "BMA") {
+        bowstring = bowstring_;
         uriUpdater = msg.sender;
     }
 
     /// @notice Mint one MinerAgent NFT to `msg.sender`. Eligibility = holds
-    ///         at least `MIN_BALANCE_TO_CLAIM` GOLD (1 full token). One claim
+    ///         at least `MIN_BALANCE_TO_CLAIM` BOW (1 full token). One claim
     ///         per address, ever.
     function claim() external returns (uint256 tokenId) {
         if (agentIdOf[msg.sender] != 0)                              revert AlreadyClaimed();
-        if (gold.balanceOf(msg.sender) < MIN_BALANCE_TO_CLAIM)     revert NotEligible();
+        if (bowstring.balanceOf(msg.sender) < MIN_BALANCE_TO_CLAIM)     revert NotEligible();
 
         unchecked { tokenId = ++totalAgents; }
         agentIdOf[msg.sender] = tokenId;
         _safeMint(msg.sender, tokenId);
 
-        emit AgentMinted(msg.sender, tokenId, gold.balanceOf(msg.sender));
+        emit AgentMinted(msg.sender, tokenId, bowstring.balanceOf(msg.sender));
     }
 
     // ───────── Soulbound transfer block ─────────
@@ -131,7 +131,7 @@ contract MinerAgent is ERC721, IERC2981 {
             return string(abi.encodePacked(externalBaseURI, tokenId.toString(), ".json"));
         }
         address owner = _ownerOf(tokenId);
-        uint256 heldBalance = gold.balanceOf(owner);
+        uint256 heldBalance = bowstring.balanceOf(owner);
         return _buildTokenURI(tokenId, owner, heldBalance);
     }
 
@@ -149,8 +149,8 @@ contract MinerAgent is ERC721, IERC2981 {
         string memory svg = _collectionSvg();
         string memory image = Base64.encode(bytes(svg));
         string memory json = string(abi.encodePacked(
-            '{"name":"Gold Miner Agent",',
-            '"description":"Soulbound ERC-8004 identity NFTs for $GOLD participants. One per address, claimable once. Metadata reflects the live $GOLD holdings of the agent wallet.",',
+            '{"name":"Bowstring Miner Agent",',
+            '"description":"Soulbound ERC-8004 identity NFTs for $BOW participants. One per address, claimable once. Metadata reflects the live $BOW holdings of the agent wallet.",',
             '"image":"data:image/svg+xml;base64,', image, '",',
             '"external_link":"https://github.com/wayne97dev/mineeth"}'
         ));
@@ -162,7 +162,7 @@ contract MinerAgent is ERC721, IERC2981 {
             '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">',
               '<rect width="600" height="600" fill="#08080a"/>',
               '<rect x="20" y="20" width="560" height="560" fill="none" stroke="#f4c430" stroke-width="1" opacity="0.4"/>',
-              '<text x="300" y="280" fill="#f4c430" font-family="monospace" font-size="56" font-weight="700" text-anchor="middle">$GOLD</text>',
+              '<text x="300" y="280" fill="#f4c430" font-family="monospace" font-size="56" font-weight="700" text-anchor="middle">$BOW</text>',
               '<text x="300" y="330" fill="#ededed" font-family="monospace" font-size="28" font-weight="700" text-anchor="middle">MINER AGENTS</text>',
               '<text x="300" y="370" fill="#5a5a62" font-family="monospace" font-size="12" letter-spacing="4" text-anchor="middle">ERC-8004 IDENTITIES</text>',
               '<text x="300" y="540" fill="#5a5a62" font-family="monospace" font-size="11" letter-spacing="3" text-anchor="middle">SOULBOUND  ON-CHAIN  MIT</text>',
@@ -196,12 +196,12 @@ contract MinerAgent is ERC721, IERC2981 {
         internal pure returns (string memory)
     {
         return string(abi.encodePacked(
-            '{"name":"Gold Miner Agent #', tokenId.toString(), '",',
-            '"description":"ERC-8004 aligned identity for a GOLD participant. Soulbound; reflects live GOLD holdings of the agent wallet.",',
+            '{"name":"Bowstring Miner Agent #', tokenId.toString(), '",',
+            '"description":"ERC-8004 aligned identity for a BOW participant. Soulbound; reflects live BOW holdings of the agent wallet.",',
             '"image":"data:image/svg+xml;base64,', image, '",',
             '"attributes":[',
                 '{"trait_type":"Tier","value":"', tier, '"},',
-                '{"trait_type":"GOLD Held","display_type":"number","value":', (heldBalance / 1e18).toString(), '},',
+                '{"trait_type":"BOW Held","display_type":"number","value":', (heldBalance / 1e18).toString(), '},',
                 '{"trait_type":"Agent Wallet","value":"', Strings.toHexString(uint160(owner), 20), '"}',
             ']}'
         ));
@@ -217,11 +217,11 @@ contract MinerAgent is ERC721, IERC2981 {
 
     /// @notice Picks one of two artwork variants per tokenId. The off-chain
     ///         metadata server (see /api/agent/[id]/route.ts) uses this to
-    ///         alternate between the two GOLD artworks assigned to each
+    ///         alternate between the two BOW artworks assigned to each
     ///         tier. Deterministic from tokenId so the variant never
     ///         changes for a given NFT.
     function variantOf(uint256 tokenId) public pure returns (uint8) {
-        return uint8(uint256(keccak256(abi.encode(tokenId, "gold-variant"))) % 2);
+        return uint8(uint256(keccak256(abi.encode(tokenId, "bowstring-variant"))) % 2);
     }
 
     function _tierColor(string memory tier) internal pure returns (string memory) {
@@ -249,7 +249,7 @@ contract MinerAgent is ERC721, IERC2981 {
             '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">',
               '<rect width="400" height="400" fill="#08080a"/>',
               '<rect x="14" y="14" width="372" height="372" fill="none" stroke="', color, '" stroke-width="1" opacity="0.4"/>',
-              '<text x="28" y="46" fill="', color, '" font-family="monospace" font-size="13" font-weight="700" letter-spacing="2">GOLD MINER AGENT</text>',
+              '<text x="28" y="46" fill="', color, '" font-family="monospace" font-size="13" font-weight="700" letter-spacing="2">BOW MINER AGENT</text>',
               '<text x="28" y="64" fill="#5a5a62" font-family="monospace" font-size="9" letter-spacing="3">ERC-8004 IDENTITY</text>'
         ));
     }
@@ -265,7 +265,7 @@ contract MinerAgent is ERC721, IERC2981 {
         return string(abi.encodePacked(
             '<text x="28" y="220" fill="#ededed" font-family="monospace" font-size="64" font-weight="700">#', tokenId.toString(), '</text>',
             '<text x="28" y="252" fill="#c8c8cc" font-family="monospace" font-size="13">', addrShort, '</text>',
-            '<text x="28" y="306" fill="#8a8a92" font-family="monospace" font-size="9" letter-spacing="2">GOLD HELD</text>',
+            '<text x="28" y="306" fill="#8a8a92" font-family="monospace" font-size="9" letter-spacing="2">BOW HELD</text>',
             '<text x="28" y="338" fill="', color, '" font-family="monospace" font-size="28" font-weight="700">', (heldBalance / 1e18).toString(), '</text>'
         ));
     }

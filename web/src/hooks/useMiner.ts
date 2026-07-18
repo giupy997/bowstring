@@ -8,11 +8,11 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { hexToBytes, type Hex } from "viem";
-import { goldAbi } from "@/lib/goldAbi";
-import { GOLD_ADDRESS } from "@/lib/contract";
+import { bowstringAbi } from "@/lib/bowstringAbi";
+import { BOW_ADDRESS } from "@/lib/contract";
 
 type WorkerMsg =
-  | { type: "progress"; workerId: number; hashes: bigint; elapsedMs: number; currentGold: bigint }
+  | { type: "progress"; workerId: number; hashes: bigint; elapsedMs: number; currentBowstring: bigint }
   | { type: "solution"; workerId: number; nonce: bigint };
 
 type MinerStatus =
@@ -33,23 +33,23 @@ export function useMiner() {
   const { address } = useAccount();
 
   const { data: challenge, refetch: refetchChallenge } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "getChallenge",
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 12_000 },
   });
 
   const { data: difficulty } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "currentDifficulty",
     query: { refetchInterval: 24_000 },
   });
 
   const { data: miningState } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "miningState",
     query: { refetchInterval: 12_000 },
   });
@@ -120,8 +120,8 @@ export function useMiner() {
       try {
         setStatus("submitting");
         const hash = await writeContractAsync({
-          address: GOLD_ADDRESS,
-          abi: goldAbi,
+          address: BOW_ADDRESS,
+          abi: bowstringAbi,
           functionName: "mine",
           args: [nonce],
         });
@@ -185,7 +185,7 @@ export function useMiner() {
         workerId: i,
         challenge: challengeBytes,
         target: targetBytes,
-        startGold: BigInt(i) * WORKER_STRIDE,
+        startBowstring: BigInt(i) * WORKER_STRIDE,
         batchSize: BATCH_SIZE,
       });
       workers.push(worker);

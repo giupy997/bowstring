@@ -17,8 +17,8 @@ import {
   type Hex,
   type Address,
 } from "viem";
-import { goldAbi } from "@/lib/goldAbi";
-import { GOLD_ADDRESS } from "@/lib/contract";
+import { bowstringAbi } from "@/lib/bowstringAbi";
+import { BOW_ADDRESS } from "@/lib/contract";
 
 const UNIVERSAL_ROUTER: Record<number, Address> = {
   // Robinhood Chain (4663) — canonical day-one Uniswap v4 deployment,
@@ -96,8 +96,8 @@ export function Trade() {
   }, [mode, amountStr]);
 
   const { data: genesis } = useReadContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "genesisState",
     query: { refetchInterval: 12_000 },
   });
@@ -107,8 +107,8 @@ export function Trade() {
   const allow = useReadContracts({
     contracts: address && router
       ? [
-          { address: GOLD_ADDRESS, abi: goldAbi, functionName: "allowance", args: [address, PERMIT2] },
-          { address: PERMIT2, abi: permit2Abi, functionName: "allowance", args: [address, GOLD_ADDRESS, router] },
+          { address: BOW_ADDRESS, abi: bowstringAbi, functionName: "allowance", args: [address, PERMIT2] },
+          { address: PERMIT2, abi: permit2Abi, functionName: "allowance", args: [address, BOW_ADDRESS, router] },
         ]
       : [],
     query: { enabled: !!address && !!router && mode === "sell", refetchInterval: 12_000 },
@@ -119,10 +119,10 @@ export function Trade() {
 
   const poolKey = useMemo(() => ({
     currency0: "0x0000000000000000000000000000000000000000" as Address,
-    currency1: GOLD_ADDRESS,
+    currency1: BOW_ADDRESS,
     fee: 0,
     tickSpacing: 200,
-    hooks: GOLD_ADDRESS,
+    hooks: BOW_ADDRESS,
   }), []);
 
   const { writeContract, data: txHash, isPending, error } = useWriteContract();
@@ -178,7 +178,7 @@ export function Trade() {
   function buy() {
     if (!router) return;
     if (parsedAmount === 0n) return;
-    const input = buildV4SwapInput(true, parsedAmount, "0x0000000000000000000000000000000000000000", GOLD_ADDRESS);
+    const input = buildV4SwapInput(true, parsedAmount, "0x0000000000000000000000000000000000000000", BOW_ADDRESS);
     writeContract({
       address: router,
       abi: universalRouterAbi,
@@ -191,7 +191,7 @@ export function Trade() {
   function sell() {
     if (!router) return;
     if (parsedAmount === 0n) return;
-    const input = buildV4SwapInput(false, parsedAmount, GOLD_ADDRESS, "0x0000000000000000000000000000000000000000");
+    const input = buildV4SwapInput(false, parsedAmount, BOW_ADDRESS, "0x0000000000000000000000000000000000000000");
     writeContract({
       address: router,
       abi: universalRouterAbi,
@@ -200,10 +200,10 @@ export function Trade() {
     });
   }
 
-  function approveGoldToPermit2() {
+  function approveBowstringToPermit2() {
     writeContract({
-      address: GOLD_ADDRESS,
-      abi: goldAbi,
+      address: BOW_ADDRESS,
+      abi: bowstringAbi,
       functionName: "approve",
       args: [PERMIT2, 2n ** 256n - 1n],
     });
@@ -215,7 +215,7 @@ export function Trade() {
       address: PERMIT2,
       abi: permit2Abi,
       functionName: "approve",
-      args: [GOLD_ADDRESS, router, 2n ** 160n - 1n, 2 ** 48 - 1],
+      args: [BOW_ADDRESS, router, 2n ** 160n - 1n, 2 ** 48 - 1],
     });
   }
 
@@ -295,7 +295,7 @@ export function Trade() {
                       ? "swapping…"
                       : isSuccess
                         ? "swapped ✓"
-                        : "buy GOLD"}
+                        : "buy BOW"}
             </button>
           )}
 
@@ -308,7 +308,7 @@ export function Trade() {
               nonceToPermit2={nonceToPermit2}
               permit2ToRouter={permit2ToRouter}
               amount={parsedAmount}
-              onApproveGold={approveGoldToPermit2}
+              onApproveBowstring={approveBowstringToPermit2}
               onApprovePermit2={approvePermit2ToRouter}
               onSell={sell}
             />
@@ -333,14 +333,14 @@ function SellButtons(props: {
   nonceToPermit2: bigint | undefined;
   permit2ToRouter: bigint | undefined;
   amount: bigint;
-  onApproveGold: () => void;
+  onApproveBowstring: () => void;
   onApprovePermit2: () => void;
   onSell: () => void;
 }) {
   const {
     isConnected, isPending, isConfirming, isSuccess,
     nonceToPermit2, permit2ToRouter, amount,
-    onApproveGold, onApprovePermit2, onSell,
+    onApproveBowstring, onApprovePermit2, onSell,
   } = props;
 
   if (!isConnected) {
@@ -351,18 +351,18 @@ function SellButtons(props: {
     return <button disabled className="btn btn-primary w-full">enter an amount</button>;
   }
 
-  const needsGoldApprove = (nonceToPermit2 ?? 0n) < amount;
+  const needsBowstringApprove = (nonceToPermit2 ?? 0n) < amount;
   const needsPermit2Approve = (permit2ToRouter ?? 0n) < amount;
   const busyLabel = isPending ? "confirm in wallet…" : isConfirming ? "confirming…" : null;
 
-  if (needsGoldApprove) {
+  if (needsBowstringApprove) {
     return (
       <button
-        onClick={onApproveGold}
+        onClick={onApproveBowstring}
         disabled={isPending || isConfirming}
         className="btn btn-primary w-full"
       >
-        {busyLabel ?? "step 1 of 3: approve GOLD to Permit2"}
+        {busyLabel ?? "step 1 of 3: approve BOW to Permit2"}
       </button>
     );
   }
@@ -385,7 +385,7 @@ function SellButtons(props: {
       disabled={isPending || isConfirming}
       className="btn btn-primary w-full"
     >
-      {busyLabel ?? (isSuccess ? "sold ✓" : "sell GOLD")}
+      {busyLabel ?? (isSuccess ? "sold ✓" : "sell BOW")}
     </button>
   );
 }

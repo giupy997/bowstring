@@ -12,11 +12,11 @@
 //
 // which routes here. We then:
 //   1. Read ownerOf(tokenId) on MinerAgent to get the holder.
-//   2. Read balanceOf(owner) on Gold to get their current token holdings.
+//   2. Read balanceOf(owner) on Bowstring to get their current token holdings.
 //   3. Map balance → tier (Initiate / Bronze / Silver / Gold / Platinum).
 //   4. Map tokenId → variant (0 or 1) via deterministic hash, mirroring
 //      MinerAgent.variantOf(tokenId).
-//   5. Return OpenSea-compatible JSON pointing at the matching GOLD_*.png.
+//   5. Return OpenSea-compatible JSON pointing at the matching BOW_*.png.
 //
 // 10 NFT artworks total (5 tiers × 2 variants), each named after a state
 // in a transaction lifecycle. The variant is fixed per tokenId; the tier
@@ -46,7 +46,7 @@ const CHAIN = defineChain({
   rpcUrls: { default: { http: [RPC_URL] } },
 });
 
-const GOLD_ADDRESS = (process.env.NFT_GOLD_ADDRESS ??
+const BOW_ADDRESS = (process.env.NFT_BOW_ADDRESS ??
   "0x0000000000000000000000000000000000000000") as `0x${string}`;
 const MINER_AGENT_ADDRESS = (process.env.NFT_MINER_AGENT_ADDRESS ??
   "0x0000000000000000000000000000000000000000") as `0x${string}`;
@@ -57,19 +57,19 @@ const minerAgentAbi = parseAbi([
   "function ownerOf(uint256 tokenId) view returns (address)",
 ]);
 
-const goldAbi = parseAbi([
+const bowstringAbi = parseAbi([
   "function balanceOf(address account) view returns (uint256)",
 ]);
 
 // ───────── Tier × variant table ─────────
 //
-// Each tier has TWO artwork variants drawn from the 10-piece GOLD
+// Each tier has TWO artwork variants drawn from the 10-piece BOW
 // collection. Mapping by narrative progression: token #1 (Genesis Signal)
 // goes to the Initiate tier (start of the journey); token #10
 // (Confirmation State) goes to Platinum (final state).
 //
 // Images pinned to IPFS via Pinata as a single CIDv1 folder. Each NFT's
-// image field resolves to ipfs://<folder>/GOLD_X.png — every wallet and
+// image field resolves to ipfs://<folder>/BOW_X.png — every wallet and
 // marketplace (OpenSea / MetaMask / Rarible / Blur) accepts the ipfs://
 // scheme and resolves through its preferred gateway. The folder pin is
 // content-addressed, so the URLs are provably immutable forever; even if
@@ -87,50 +87,50 @@ type Tier = {
   color: string;
   /** Same color without "#", OpenSea spec for background_color. */
   bg: string;
-  /** Floor balance in whole GOLD to qualify for this tier. */
-  minGold: number;
+  /** Floor balance in whole BOW to qualify for this tier. */
+  minBowstring: number;
 };
 
 const TIERS = {
   platinum: {
     name: "Platinum",
-    variants: [`${IPFS_ROOT}/GOLD_9.png`, `${IPFS_ROOT}/GOLD_10.png`],
+    variants: [`${IPFS_ROOT}/BOW_9.png`, `${IPFS_ROOT}/BOW_10.png`],
     variantNames: ["Transition State", "Confirmation State"],
     color: "#e5e4e2",
     bg: "0e0e0d",
-    minGold: 1_000_000,
+    minBowstring: 1_000_000,
   },
   gold: {
     name: "Gold",
-    variants: [`${IPFS_ROOT}/GOLD_7.png`, `${IPFS_ROOT}/GOLD_8.png`],
+    variants: [`${IPFS_ROOT}/BOW_7.png`, `${IPFS_ROOT}/BOW_8.png`],
     variantNames: ["Archived State", "Echo State"],
     color: "#f4c430",
     bg: "0e0a02",
-    minGold: 100_000,
+    minBowstring: 100_000,
   },
   silver: {
     name: "Silver",
-    variants: [`${IPFS_ROOT}/GOLD_5.png`, `${IPFS_ROOT}/GOLD_6.png`],
+    variants: [`${IPFS_ROOT}/BOW_5.png`, `${IPFS_ROOT}/BOW_6.png`],
     variantNames: ["Replay Barrier", "Finalized State"],
     color: "#c0c0c8",
     bg: "0c0c10",
-    minGold: 10_000,
+    minBowstring: 10_000,
   },
   bronze: {
     name: "Bronze",
-    variants: [`${IPFS_ROOT}/GOLD_3.png`, `${IPFS_ROOT}/GOLD_4.png`],
+    variants: [`${IPFS_ROOT}/BOW_3.png`, `${IPFS_ROOT}/BOW_4.png`],
     variantNames: ["Ordered Execution", "Verified State"],
     color: "#cd7f32",
     bg: "0e0801",
-    minGold: 1_000,
+    minBowstring: 1_000,
   },
   initiate: {
     name: "Initiate",
-    variants: [`${IPFS_ROOT}/GOLD_1.png`, `${IPFS_ROOT}/GOLD_2.png`],
+    variants: [`${IPFS_ROOT}/BOW_1.png`, `${IPFS_ROOT}/BOW_2.png`],
     variantNames: ["Genesis Signal", "Pending State"],
     color: "#7a7a82",
     bg: "08080a",
-    minGold: 0,
+    minBowstring: 0,
   },
 } as const satisfies Record<string, Tier>;
 
@@ -144,7 +144,7 @@ function tierFor(balance: bigint): Tier {
 
 /**
  * Mirrors MinerAgent.variantOf(tokenId) on-chain. Solidity computes
- *   keccak256(abi.encode(tokenId, "gold-variant")) % 2
+ *   keccak256(abi.encode(tokenId, "bowstring-variant")) % 2
  * viem's encodeAbiParameters produces byte-identical input to Solidity's
  * abi.encode, so the resulting hash matches and the JS/Solidity answer
  * agrees for any tokenId.
@@ -152,7 +152,7 @@ function tierFor(balance: bigint): Tier {
 function variantFor(tokenId: bigint): 0 | 1 {
   const encoded = encodeAbiParameters(
     [{ type: "uint256" }, { type: "string" }],
-    [tokenId, "gold-variant"]
+    [tokenId, "bowstring-variant"]
   );
   const hash = keccak256(encoded);
   return Number(BigInt(hash) % 2n) as 0 | 1;
@@ -192,10 +192,10 @@ export async function GET(
     );
   }
 
-  // Resolve current GOLD balance and pick the tier + variant.
+  // Resolve current BOW balance and pick the tier + variant.
   const balance = await client.readContract({
-    address: GOLD_ADDRESS,
-    abi: goldAbi,
+    address: BOW_ADDRESS,
+    abi: bowstringAbi,
     functionName: "balanceOf",
     args: [owner],
   });
@@ -207,20 +207,20 @@ export async function GET(
   const nonceHeld = Number(balance / 10n ** 18n);
 
   const metadata = {
-    name: `Gold Miner Agent #${tokenId} — ${variantName}`,
+    name: `Bowstring Miner Agent #${tokenId} — ${variantName}`,
     description:
-      `${variantName.toUpperCase()}. GOLD Miner Agent — soulbound ERC-8004 ` +
-      "identity attached to the autonomous Gold agent on Robinhood " +
-      "Chain. The tier badge reflects the holder's live GOLD balance, " +
+      `${variantName.toUpperCase()}. BOW Miner Agent — soulbound ERC-8004 ` +
+      "identity attached to the autonomous Bowstring agent on Robinhood " +
+      "Chain. The tier badge reflects the holder's live BOW balance, " +
       "so the NFT visually upgrades as you accumulate. The variant is " +
       "fixed at mint time, hashed deterministically from the tokenId. " +
-      "Minimum 1 GOLD held to claim; transfers are blocked at the " +
+      "Minimum 1 BOW held to claim; transfers are blocked at the " +
       "contract level.",
     // variantPath is already a full ipfs:// URI — no origin prefix needed.
     image: variantPath,
     background_color: tier.bg,
     // TODO(post-registration): point at the agent's registry page once
-    // Gold is registered on an ERC-8004 IdentityRegistry reachable
+    // Bowstring is registered on an ERC-8004 IdentityRegistry reachable
     // from Robinhood Chain (see script/RegisterAgent.s.sol).
     external_url: "https://robinhoodchain.blockscout.com/token/" + MINER_AGENT_ADDRESS,
     attributes: [
@@ -233,17 +233,17 @@ export async function GET(
       },
       {
         display_type: "number",
-        trait_type: "GOLD Held",
+        trait_type: "BOW Held",
         value: nonceHeld,
       },
       {
         display_type: "number",
         trait_type: "Tier Floor",
-        value: tier.minGold,
+        value: tier.minBowstring,
       },
       { trait_type: "Agent Wallet", value: owner },
       { trait_type: "Tier Color", value: tier.color },
-      // ERC-8004 backlink — fill the agent id in once Gold is
+      // ERC-8004 backlink — fill the agent id in once Bowstring is
       // registered on an ERC-8004 IdentityRegistry (RegisterAgent.s.sol).
       { trait_type: "ERC-8004 Agent", value: "TBD" },
       { trait_type: "Agent Network", value: "Robinhood Chain" },
