@@ -14,8 +14,7 @@ pragma solidity ^0.8.26;
    address, one bytecode, one autonomous agent.
 
    Chain: Robinhood Chain (4663)
-   Site:  TBD (set before mainnet deploy)
-   X:     TBD (set before mainnet deploy)
+   Site:  https://bowstringrh.com
 */
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";

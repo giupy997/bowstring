@@ -1,9 +1,9 @@
 // OpenSea collection-level metadata endpoint, exposed at
 //
-//   https://bowstring-tbd.com/api/collection
+//   https://bowstringrh.com/api/collection
 //
 // After the production MinerAgent deploys we call
-//   MinerAgent.setExternalContractURI("https://bowstring-tbd.com/api/collection")
+//   MinerAgent.setExternalContractURI("https://bowstringrh.com/api/collection")
 // so OpenSea / collection aggregators pull the rich card from here instead
 // of falling back to the on-chain SVG default in MinerAgent._defaultContractURI.
 //
@@ -39,7 +39,7 @@ export async function GET() {
     // Featured = Platinum tier's Confirmation State, the most ornate
     // artwork of the 10, used as collection highlight.
     featured_image: `${IPFS_ROOT}/BOW_10.png`,
-    external_link: "https://bowstring-tbd.com",
+    external_link: "https://bowstringrh.com",
     collaborators: [],
     // Royalty config — soulbound collection, no secondary trade signal.
     // Some marketplaces still expect these fields to be present.

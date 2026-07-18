@@ -23,14 +23,6 @@ export function Header() {
             <a href="#genesis" className="nav-link">genesis</a>
             <a href="#mine" className="nav-link">mine</a>
             <a href="/whitepaper" className="nav-link">whitepaper</a>
-            <a
-              href="https://x.com/bowstring-tbd"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="nav-link"
-            >
-              x
-            </a>
           </nav>
         </div>
         <ConnectWallet />

@@ -81,15 +81,13 @@ export default function Page() {
             </a>
           </div>
           <div>
-            x:{" "}
+            site:{" "}
             <a
-              href="https://x.com/bowstring-tbd"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="https://bowstringrh.com"
               className="hover:underline"
               style={{ color: "var(--accent)" }}
             >
-              @bowstring-tbd
+              bowstringrh.com
             </a>
           </div>
         </footer>

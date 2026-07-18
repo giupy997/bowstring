@@ -11,8 +11,8 @@
   },
   "endpoints": {
     "contract": "eip155:4663:0x0000000000000000000000000000000000000000",
-    "frontend": "https://bowstring-tbd.com",
-    "whitepaper": "https://bowstring-tbd.com/whitepaper.pdf",
+    "frontend": "https://bowstringrh.com",
+    "whitepaper": "https://bowstringrh.com/whitepaper.pdf",
     "source": "https://github.com/giupy997/bowstring"
   },
   "capabilities": [

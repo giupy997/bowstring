@@ -14,7 +14,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bowstring-tbd.com"),
+  metadataBase: new URL("https://bowstringrh.com"),
   title: "Bowstring — mined ERC-8004 agent",
   description:
     "Bowstring ($BOW) is a mined ERC-8004 agent with a Uniswap V4 self-hook. The token, the V4 hook, and the PoW miner are the same contract.",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "Bowstring — mined ERC-8004 agent",
     description:
       "Mined ERC-8004 agent with a self-hook. Soulbound Miner Agent NFTs. No owner, no mint key, no proxy.",
-    url: "https://bowstring-tbd.com",
+    url: "https://bowstringrh.com",
     siteName: "Bowstring",
     images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Bowstring sigil" }],
     type: "website",

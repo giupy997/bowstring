@@ -202,7 +202,7 @@ registration, fill the agent id into the NFT metadata routes
 
 ## Pre-launch checklist (branding)
 
-- [ ] Domain: replace `bowstring-tbd.com` placeholders (`layout.tsx`,
+- [ ] Domain: replace `bowstringrh.com` placeholders (`layout.tsx`,
       `api/collection/route.ts`) and the `Site:`/`X:` lines in
       `src/Bowstring.sol` — the contract header is immutable once deployed.
 - [ ] `NEXT_PUBLIC_WC_PROJECT_ID` (Reown/WalletConnect) in Netlify env.
